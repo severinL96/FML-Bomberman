@@ -39,7 +39,7 @@ def build_q_network_2(learning_rate=0.00001):
     return model
 
 
-def build_q_network():
+def build_q_network(learning_rate=0.001):
     """
     Builds a deep neural net which predicts the Q values for all possible
     actions given a state. The input should have the shape of the state
@@ -68,7 +68,8 @@ def reshape_game_state(game_state, vector=True):
     coin_map = np.zeros((17,17))
     for coin_coord in game_state['coins']:
         coin_map[coin_coord]=1
-        
+
+
     bomb_map = np.zeros((17,17))
     for bomb_coord,bomb_time in game_state['bombs']:
         bomb_map[bomb_coord]=bomb_time
@@ -79,12 +80,13 @@ def reshape_game_state(game_state, vector=True):
             player_map[coord]= -1
         else:
             player_map[coord]= -0.5
+
     name,score,bomb,coord = game_state['self']
     if bomb:
         player_map[coord]= 1
     else:
         player_map[coord]= 0.5
-        
+
     #join all maps
     state = np.stack([game_state['field'],game_state['explosion_map'],coin_map,bomb_map,player_map])
     if vector:
@@ -99,8 +101,8 @@ def setup(self):
     store possible actions
     '''
     self.reshape_game_state = reshape_game_state
-    self.q_net = build_q_network()
-    self.target_q_net = build_q_network()
+    self.q_net = build_q_network(learning_rate=0.001)
+    self.target_q_net = build_q_network(learning_rate=0.001)
     self.actions = ['UP', 'RIGHT', 'DOWN', 'LEFT', 'WAIT', 'BOMB']
 
 def act(self,state):
@@ -113,7 +115,6 @@ def act(self,state):
     Returns:
         a string returning the predicted move
     '''
-    
     if np.random.rand()<0.1:
         return np.random.choice(['RIGHT', 'LEFT', 'UP', 'DOWN','WAIT', 'BOMB'], p=[.2, .2, .2, .2,.1,.1])
     else:
@@ -121,3 +122,6 @@ def act(self,state):
         action_q = self.q_net(state_input)  
         action_index = np.argmax(action_q.numpy()[0], axis=0)
         return self.actions[action_index]
+
+
+
