@@ -15,12 +15,15 @@ def setup(self):
     '''
     self.reshape_game_state = reshape_game_state
     self.save_model = save_model
-    self.load_model = load_model
-    #self.q_net = build_q_network(learning_rate=0.001)
-    #self.target_q_net = build_q_network(learning_rate=0.001)
+    self.use_pretrained_model=True
     self.model_location = 'saved_model'
-    self.q_net = self.load_model(self,model_location = 'saved_model')
-    self.target_q_net = self.load_model(self,model_location = 'saved_model')
+    if self.use_pretrained_model:    
+        self.load_model = load_model
+        self.q_net = self.load_model(self,model_location = 'saved_model')
+        self.target_q_net = self.load_model(self,model_location = 'saved_model')
+    else:
+        self.q_net = build_q_network(learning_rate=0.001)
+        self.target_q_net = build_q_network(learning_rate=0.001)
     self.actions = ['UP', 'RIGHT', 'DOWN', 'LEFT', 'WAIT', 'BOMB']
 
 def act(self,state):
