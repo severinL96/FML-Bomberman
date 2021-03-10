@@ -47,7 +47,7 @@ def build_q_network(learning_rate=0.001):
     :return: the Q network
     """
     q_net = Sequential()
-    q_net.add(Dense(64, input_dim=1445, activation='relu', kernel_initializer='he_uniform'))
+    q_net.add(Dense(64, input_dim=867, activation='relu', kernel_initializer='he_uniform'))
     q_net.add(Dense(32, activation='relu', kernel_initializer='he_uniform'))
     q_net.add(Dense(6, activation='linear', kernel_initializer='he_uniform'))
     q_net.compile(optimizer=tf.optimizers.Adam(learning_rate=0.001), loss='mse')
@@ -80,9 +80,8 @@ def reshape_game_state(game_state, vector=True):
     #extract all data from coin, bomb and players to maps
     coin_player_map = np.zeros((17,17))
     for coin_coord in game_state['coins']:
-        coin_map[coin_coord]=1
+        coin_player_map[coin_coord]=1
 
-    player_map = np.zeros((17,17))
     for name,score,bomb,coord in game_state['others']:
         if bomb:
             coin_player_map[coord]= -1

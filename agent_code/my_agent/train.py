@@ -42,7 +42,10 @@ def do_training(self):
             Y.append(target_q)   
 
     #Fit the model for all collected pairs
-    result = self.q_net.fit(x=np.array(X)[0], y=np.array(Y)[0], verbose=0)
+    if self.print_loss:
+        result = self.q_net.fit(x=np.array(X)[0], y=np.array(Y)[0], verbose=0)
+        loss = result.history['loss'][0]
+        print('loss:' +str(loss))
 
 
 def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_state: dict, events: List[str]):
@@ -76,11 +79,6 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     action = [i for i in range(0, len(self.actions)) if self.actions[i] == last_action][0]
     self.transitions.append([last_game_state,action,reward,None])
 
-    '''# Store the model
-    with open("my-saved-model.pt", "wb") as file:
-        pickle.dump(self.model, file)
-    '''
-    
     self.do_training(self)
     self.update_target_q_net(self)
     self.save_model(self)
@@ -130,6 +128,7 @@ def setup_training(self):
     # Example: Setup an array that will note transition tuples
     # (s, a, r, s')
     self.do_training = do_training
+    self.print_loss = False
     self.reward_from_events = reward_from_events
     self.transitions = []
     self.update_target_q_net = update_target_q_net

@@ -21,10 +21,10 @@ def reward_from_events(events):
     """
     game_rewards = {
         #Positive rewards
-        e.COIN_FOUND: 0.1, # encourages exploration
-        e.COIN_COLLECTED: 1, 
-        e.KILLED_OPPONENT: 5,
-        e.SURVIVED_ROUND: 5, # encourages survival
+        e.COIN_FOUND: .1, # encourages exploration
+        e.COIN_COLLECTED: .5, 
+        e.KILLED_OPPONENT: .1,
+        e.SURVIVED_ROUND: .1, # encourages survival
 
         #Move penaltys
         e.MOVED_DOWN: -0.1, # encourages efficent movement
@@ -34,9 +34,9 @@ def reward_from_events(events):
         e.WAITED: -0.1,
 
         #Stupid penaltys
-        e.INVALID_ACTION: -5, # encourages to not be stupid
-        e.GOT_KILLED: -10,
-        e.KILLED_SELF: -10
+        e.INVALID_ACTION: -1, # encourages to not be stupid
+        e.GOT_KILLED: -1,
+        e.KILLED_SELF: -1
     }
     reward_sum = 0
     for event in events:
