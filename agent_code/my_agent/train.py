@@ -203,9 +203,23 @@ def reward_from_events_TEST(events: List[str]) -> int:
     certain behavior.
     """
     game_rewards = {
-        e.COIN_COLLECTED: 1,
+        #Positive rewards
+        e.COIN_FOUND: 0.1, # encourages exploration
+        e.COIN_COLLECTED: 1, 
         e.KILLED_OPPONENT: 5,
-        
+        e.SURVIVED_ROUND: 5, # encourages survival
+
+        #Move penaltys
+        e.MOVED_DOWN: -0.1, # encourages efficent movement
+        e.MOVED_LEFT: -0.1,
+        e.MOVED_RIGHT: -0.1,
+        e.MOVED_UP: -0.1,
+        e.WAITED: -0.1,
+
+        #Stupid penaltys
+        e.INVALID_ACTION: -3, # encourages to not be stupid
+        e.GOT_KILLED: -10,
+        e.KILLED_SELF: -10
     }
     reward_sum = 0
     for event in events:
