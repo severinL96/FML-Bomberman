@@ -2,7 +2,8 @@ import pickle
 import random
 from collections import namedtuple, deque
 from typing import List
-
+import numpy as np
+import tensorflow as tf
 import events as e
 from .callbacks import reshape_game_state
 
@@ -12,19 +13,64 @@ def do_training(self, batch):
     '''
     take a batch of experiences and update the model
     '''
-    old_game_state_batch, action_batch, reward_batch, new_game_state_batch = batch
+    
 
-    current_q = self.q_net(old_state_batch)
+    old_game_state_batch, action_batch, reward_batch, new_game_state_batch = batch
+    
+    
+    
+    print("old state")
+    print(old_game_state_batch)
+    print("action")
+    print(action_batch)
+    print("reward")
+    print(reward_batch)
+    print("new state")
+    print(new_game_state_batch)
+    
+
+    #print("HERE IS THE OLD STATE")
+    #print(old_game_state_batch)
+    
+    
+    current_q = self.q_net(old_game_state_batch)
     target_q = np.copy(current_q)
-    next_q = self.target_q_net(next_state_batch)
+    next_q = self.target_q_net(new_game_state_batch)
     max_next_q = np.amax(next_q, axis=1)
     for i in range(old_game_state_batch.shape[0]):
         target_q[i][action_batch[i]] = reward_batch[i] + 0.95 * max_next_q[i]
     result = self.q_net.fit(x=state_batch, y=target_q)
 
-@add_method(self)
-def get_gameplay_batch(size):
-    return self.transition[size-2:-2]
+#@add_method(self)
+def get_gameplay_batch(self, size):
+    
+    batch = np.array(self.transitions)
+    
+    
+    
+    
+    old_game_state_batch = batch[3:5:,0][3:5]
+    old_game_state_batch = tf.convert_to_tensor(old_game_state_batch[None, :], dtype=tf.float32)
+    action_batch = batch[:,1]
+    action_batch = tf.convert_to_tensor(action_batch[None, :], dtype=tf.float32)
+    reward_batch = batch[:,2]
+    reward_batch = tf.convert_to_tensor(reward_batch[None, :], dtype=tf.float32)
+    new_game_state_batch = batch[:,3]
+    new_game_state_batch = tf.convert_to_tensor(new_game_state_batch[None, :], dtype=tf.float32)
+    
+    
+    #print("old state")
+    #print(old_game_state_batch)
+    #print("action")
+    #print(action_batch)
+    #print("reward")
+    #print(reward_batch)
+    #print("new state")
+    #print(new_game_state_batch)
+    
+    return [old_game_state_batch, action_batch, reward_batch, new_game_state_batch]
+
+
 
 #Moritz: Initialize the NN here?
 def setup_training(self):
@@ -64,15 +110,19 @@ def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_
     self.logger.debug(f'Encountered game event(s) {", ".join(map(repr, events))} in step {new_game_state["step"]}')
 
     # state_to_features is defined in callbacks.py
-    if new_game_state['round']==1:
+    if new_game_state['step']<=1:
         old_game_state = None
         reward = 0
         action = None
     else:
         old_game_state = self.reshape_game_state(old_game_state)
         reward = self.reward_from_events_TEST(events)
-    new_game_state = self.reshape_game_state(new_game_state)
 
+    new_game_state = self.reshape_game_state(new_game_state)
+    action = self_action    
+
+    
+    
     self.transitions.append([old_game_state,action,reward,new_game_state])
 
 
@@ -92,8 +142,8 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     self.logger.debug(f'Encountered event(s) {", ".join(map(repr, events))} in final step')
     
     last_game_state = self.reshape_game_state(last_game_state)
-    print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-    print(events)
+    #print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+    #print(events)
     reward = self.reward_from_events_TEST(events)
 
     self.transitions.append([last_game_state,last_action,reward,None])
@@ -102,8 +152,10 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     with open("my-saved-model.pt", "wb") as file:
         pickle.dump(self.model, file)
     '''
-    batch = self.get_gameplay_batch(4)
-    self.train(batch)
+   
+    
+    batch = self.get_gameplay_batch(self, 4)
+    self.do_training(self, batch)
 
 def reward_from_events(self, events: List[str]) -> int:
     """
