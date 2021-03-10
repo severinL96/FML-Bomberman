@@ -67,6 +67,8 @@ def do_training(self):
         except Exception as e:
             print(e)
 
+def update_target_q_net(self)
+    self.target_q_net.set_weights(self.q_net.get_weights())
 """
 #@add_method(self)
 def get_gameplay_batch(self, size):
@@ -110,6 +112,7 @@ def setup_training(self):
     self.do_training = do_training
     self.reward_from_events_TEST = reward_from_events_TEST
     self.transitions = []
+    self.update_target_q_net
 
 
 
