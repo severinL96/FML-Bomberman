@@ -1,10 +1,6 @@
 import os
 import pickle
 import random
-import tensorflow as tf
-from tensorflow.keras.layers import (Input,Dense,Lambda)
-from tensorflow.keras.models import Model, Sequential
-from tensorflow.keras.optimizers import Adam
 import numpy as np
 print(os.getcwd())
 from .callbacks_helper import *
@@ -18,8 +14,13 @@ def setup(self):
     store possible actions
     '''
     self.reshape_game_state = reshape_game_state
-    self.q_net = build_q_network(learning_rate=0.001)
-    self.target_q_net = build_q_network(learning_rate=0.001)
+    self.save_model = save_model
+    self.load_model = load_model
+    #self.q_net = build_q_network(learning_rate=0.001)
+    #self.target_q_net = build_q_network(learning_rate=0.001)
+    self.model_location = 'saved_model'
+    self.q_net = self.load_model(self,model_location = 'saved_model')
+    self.target_q_net = self.load_model(self,model_location = 'saved_model')
     self.actions = ['UP', 'RIGHT', 'DOWN', 'LEFT', 'WAIT', 'BOMB']
 
 def act(self,state):

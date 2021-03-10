@@ -1,6 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras.layers import (Input,Dense,Lambda)
-from tensorflow.keras.models import Model, Sequential
+from tensorflow.keras.models import Model, Sequential, load_model
+from tensorflow.keras import models
 from tensorflow.keras.optimizers import Adam
 import numpy as np
 
@@ -52,6 +53,17 @@ def build_q_network(learning_rate=0.001):
     q_net.compile(optimizer=tf.optimizers.Adam(learning_rate=0.001), loss='mse')
     return q_net
 
+############################################################
+# load and save models
+############################################################
+
+def save_model(self):
+    '''saves model at location specified in self.model_location'''
+    tf.saved_model.save(self.q_net,self.model_location)
+
+def load_model(self,model_location):
+    '''loads model from model location'''
+    return models.load_model(self.model_location)
 ############################################################
 # reshape game state
 ############################################################
