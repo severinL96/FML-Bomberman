@@ -6,15 +6,13 @@ import numpy as np
 import tensorflow as tf
 import events as e
 from .callbacks import reshape_game_state
+from .train_helper import *
 
-PLACEHOLDER_EVENT = 'INVALID_ACTION'
 
 def do_training(self):
     '''
     take a batch of experiences and update the model
     '''
-  
-    
     batch = np.array(self.transitions)
 
     oldStateBATCH = batch[:,0]
@@ -67,72 +65,10 @@ def do_training(self):
         except Exception as e:
             print(e)
 
-def update_target_q_net(self)
-    self.target_q_net.set_weights(self.q_net.get_weights())
-"""
-#@add_method(self)
-def get_gameplay_batch(self, size):
-    
-    batch = np.array(self.transitions)
 
-    old_game_state_batch = batch[:,0]
-    #old_game_state_batch = tf.convert_to_tensor(old_game_state_batch[None, :], dtype=tf.float32)
-    action_batch = batch[:,1]
-    #action_batch = tf.convert_to_tensor(action_batch[None, :], dtype=tf.float32)
-    reward_batch = batch[:,2]
-    #reward_batch = tf.convert_to_tensor(reward_batch[None, :], dtype=tf.float32)
-    new_game_state_batch = batch[:,3]
-    #new_game_state_batch = tf.convert_to_tensor(new_game_state_batch[None, :], dtype=tf.float32)    
-    
-
-    for i in range(0, len(old_game_state_batch)):
-        if not old_game_state_batch[i] == None or new_game_state_batch[i] == None:
-            
-            TEMP_old_game_state_batch = old_game_state_batch[i]
-            TEMP_action_batch = [action_batch[i]]
-            TEMP_reward_batch = [reward_batch[i]]
-            TEMP_new_game_state_batch = new_game_state_batch[i]             
-            
-            
-    return [TEMP_old_game_state_batch, TEMP_action_batch, TEMP_reward_batch, TEMP_new_game_state_batch]
-
-"""
-
-#Moritz: Initialize the NN here?
-def setup_training(self):
-    """
-    Initialise self for training purpose.
-
-    This is called after `setup` in callbacks.py.
-
-    :param self: This object is passed to all callbacks and you can set arbitrary values.
-    """
-    # Example: Setup an array that will note transition tuples
-    # (s, a, r, s')
-    self.do_training = do_training
-    self.reward_from_events_TEST = reward_from_events_TEST
-    self.transitions = []
-    self.update_target_q_net
-
-
-
-#Severin: Collect rewards and fill experience buffer
 def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_state: dict, events: List[str]):
     """
-    Called once per step to allow intermediate rewards based on game events.
-
-    When this method is called, self.events will contain a list of all game
-    events relevant to your agent that occurred during the previous step. Consult
-    settings.py to see what events are tracked. You can hand out rewards to your
-    agent based on these events and your knowledge of the (new) game state.
-
-    This is *one* of the places where you could update your agent.
-
-    :param self: This object is passed to all callbacks and you can set arbitrary values.
-    :param old_game_state: The state that was passed to the last call of `act`.
-    :param self_action: The action that you took.
-    :param new_game_state: The state the agent is in now.
-    :param events: The events that occurred when going from  `old_game_state` to `new_game_state`
+    appends old_game_state,action,reward,new_game_state to self.transitions
     """
     self.logger.debug(f'Encountered game event(s) {", ".join(map(repr, events))} in step {new_game_state["step"]}')
 
@@ -141,34 +77,25 @@ def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_
         old_game_state = None
         reward = 0
         action = None
+        new_game_state = self.reshape_game_state(new_game_state)
     else:
         old_game_state = self.reshape_game_state(old_game_state)
-        reward = self.reward_from_events_TEST(events)
-        action = [i for i in range(0, len(self.actions)) if self.actions[i] == self_action][0]
-    new_game_state = self.reshape_game_state(new_game_state)
+        reward = self.reward_from_events(events)
+        action = [i for i in range(0, len(self.actions)) if self.actions[i] == self_action][0] #returns index of action
+        new_game_state = self.reshape_game_state(new_game_state)
 
     self.transitions.append([old_game_state,action,reward,new_game_state])
 
 
-#Severin: Step2 --> Check results and trigger gradient descent
-def end_of_round(self, last_game_state: dict, last_action: str, events: List[str]):
+
+def end_of_round(self, last_game_state, last_action: str, events: List[str]):
     """
     Called at the end of each game or when the agent died to hand out final rewards.
-
-    This is similar to reward_update. self.events will contain all events that
-    occurred during your agent's final step.
-
-    This is *one* of the places where you could update your agent.
-    This is also a good place to store an agent that you updated.
-
-    :param self: The same object that is passed to all of your callbacks.
     """
     self.logger.debug(f'Encountered event(s) {", ".join(map(repr, events))} in final step')
     
     last_game_state = self.reshape_game_state(last_game_state)
-    #print('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-    #print(events)
-    reward = self.reward_from_events_TEST(events)
+    reward = self.reward_from_events(events)
 
     self.transitions.append([last_game_state,last_action,reward,None])
 
@@ -179,31 +106,13 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     
     self.do_training(self)
 
-def reward_from_events(self, events: List[str]) -> int:
-    """
-    *This is not a required function, but an idea to structure your code.*
 
-    Here you can modify the rewards your agent get so as to en/discourage
-    certain behavior.
+def reward_from_events(events):
     """
-    game_rewards = {
-        e.COIN_COLLECTED: 1,
-        e.KILLED_OPPONENT: 5,
-        PLACEHOLDER_EVENT: -.1  # idea: the custom event is bad
-    }
-    reward_sum = 0
-    for event in events:
-        if event in game_rewards:
-            reward_sum += game_rewards[event]
-    self.logger.info(f"Awarded {reward_sum} for events {', '.join(events)}")
-    return reward_sum
-
-def reward_from_events_TEST(events: List[str]) -> int:
-    """
-    *This is not a required function, but an idea to structure your code.*
-
-    Here you can modify the rewards your agent get so as to en/discourage
-    certain behavior.
+    Arguments:
+        a list of event strings 
+    Returns:
+        a reward corresponding to the events' value 
     """
     game_rewards = {
         #Positive rewards
@@ -228,4 +137,22 @@ def reward_from_events_TEST(events: List[str]) -> int:
     for event in events:
         if event in game_rewards:
             reward_sum += game_rewards[event]
+   
     return reward_sum
+
+#Moritz: Initialize the NN here?
+def setup_training(self):
+    """
+    Initialise self for training purpose.
+
+    This is called after `setup` in callbacks.py.
+
+    :param self: This object is passed to all callbacks and you can set arbitrary values.
+    """
+    # Example: Setup an array that will note transition tuples
+    # (s, a, r, s')
+    self.do_training = do_training
+    self.reward_from_events = reward_from_events
+    self.transitions = []
+    self.update_target_q_net = update_target_q_net
+
