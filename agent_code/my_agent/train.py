@@ -83,7 +83,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     
     self.do_training(self)
     self.update_target_q_net(self)
-
+    self.save_model(self)
 
 def reward_from_events(events):
     """
@@ -133,4 +133,5 @@ def setup_training(self):
     self.reward_from_events = reward_from_events
     self.transitions = []
     self.update_target_q_net = update_target_q_net
+    
 

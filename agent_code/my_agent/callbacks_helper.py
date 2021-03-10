@@ -1,6 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras.layers import (Input,Dense,Lambda)
-from tensorflow.keras.models import Model, Sequential
+from tensorflow.keras.models import Model, Sequential, load_model
+from tensorflow.keras import models
 from tensorflow.keras.optimizers import Adam
 import numpy as np
 
@@ -53,6 +54,17 @@ def build_q_network(learning_rate=0.001):
     return q_net
 
 ############################################################
+# load and save models
+############################################################
+
+def save_model(self):
+    '''saves model at location specified in self.model_location'''
+    tf.saved_model.save(self.q_net,self.model_location)
+
+def load_model(self,model_location):
+    '''loads model from model location'''
+    return models.load_model(self.model_location)
+############################################################
 # reshape game state
 ############################################################
 
@@ -66,30 +78,30 @@ def reshape_game_state(game_state, vector=True):
     returns info in the form of maps or as unravelled stacked vector
     '''
     #extract all data from coin, bomb and players to maps
-    coin_map = np.zeros((17,17))
+    coin_player_map = np.zeros((17,17))
     for coin_coord in game_state['coins']:
         coin_map[coin_coord]=1
 
-
-    bomb_map = np.zeros((17,17))
-    for bomb_coord,bomb_time in game_state['bombs']:
-        bomb_map[bomb_coord]=bomb_time
-        
     player_map = np.zeros((17,17))
     for name,score,bomb,coord in game_state['others']:
         if bomb:
-            player_map[coord]= -1
+            coin_player_map[coord]= -1
         else:
-            player_map[coord]= -0.5
+            coin_player_map[coord]= -0.5
 
     name,score,bomb,coord = game_state['self']
     if bomb:
-        player_map[coord]= 1
+        coin_player_map[coord]= 1
     else:
-        player_map[coord]= 0.5
+        coin_player_map[coord]= 0.5
+
+    field_bomb_map = game_state['field']
+    for bomb_coord,bomb_time in game_state['bombs']:
+        field_bomb_map[bomb_coord]=bomb_time
+        
 
     #join all maps
-    state = np.stack([game_state['field'],game_state['explosion_map'],coin_map,bomb_map,player_map])
+    state = np.stack([field_bomb_map,game_state['explosion_map'],coin_player_map])
     if vector:
         state = state.reshape(-1)
     

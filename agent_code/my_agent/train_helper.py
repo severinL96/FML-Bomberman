@@ -4,14 +4,6 @@ import events as e
 ############################################################
 # model related stuff
 ############################################################
-def save_model(self):
-    '''saves model at location specified in self.model_location'''
-    tf.saved_model.save(self.q_net,self.model_location)
-    print('model is saved successfully')
-
-def load_model(self):
-    '''loads model from model location'''
-    return tf.saved_model.load(self.model_location)
 
 def update_target_q_net(self):
     self.target_q_net.set_weights(self.q_net.get_weights())
@@ -42,7 +34,7 @@ def reward_from_events(events):
         e.WAITED: -0.1,
 
         #Stupid penaltys
-        e.INVALID_ACTION: -3, # encourages to not be stupid
+        e.INVALID_ACTION: -5, # encourages to not be stupid
         e.GOT_KILLED: -10,
         e.KILLED_SELF: -10
     }
