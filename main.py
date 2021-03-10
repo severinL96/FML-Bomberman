@@ -9,10 +9,6 @@ from fallbacks import pygame, tqdm, LOADED_PYGAME
 from replay import ReplayWorld
 
 
-
-
-
-
 # Function to run the game logic in a separate thread
 def game_logic(world: GenericWorld, user_inputs, args):
     last_update = time()
@@ -35,12 +31,6 @@ def main(args):
 
     subparsers = parser.add_subparsers(dest='command_name', required=True)
 
-    #############
-    # For Exercise 1
-    s.CRATE_DENSITY = 0
-    #############
-    
-    
     # Run arguments
     play_parser = subparsers.add_parser("play")
     agent_group = play_parser.add_mutually_exclusive_group()
