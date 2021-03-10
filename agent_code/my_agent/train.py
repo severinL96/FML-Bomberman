@@ -9,68 +9,92 @@ from .callbacks import reshape_game_state
 
 PLACEHOLDER_EVENT = 'INVALID_ACTION'
 
-def do_training(self, batch):
+def do_training(self):
     '''
     take a batch of experiences and update the model
     '''
+  
     
+    batch = np.array(self.transitions)
 
-    old_game_state_batch, action_batch, reward_batch, new_game_state_batch = batch
+    oldStateBATCH = batch[:,0]
+    #old_game_state_batch = tf.convert_to_tensor(old_game_state_batch[None, :], dtype=tf.float32)
+    actionBATCH = batch[:,1]
+    #action_batch = tf.convert_to_tensor(action_batch[None, :], dtype=tf.float32)
+    rewardBATCH = batch[:,2]
+    #reward_batch = tf.convert_to_tensor(reward_batch[None, :], dtype=tf.float32)
+    newStateBATCH= batch[:,3]
+    #new_game_state_batch = tf.convert_to_tensor(new_game_state_batch[None, :], dtype=tf.float32)    
     
     
+    for k in range(0, len(oldStateBATCH)):
     
-    print("old state")
-    print(old_game_state_batch)
-    print("action")
-    print(action_batch)
-    print("reward")
-    print(reward_batch)
-    print("new state")
-    print(new_game_state_batch)
-    
+        try:
 
-    #print("HERE IS THE OLD STATE")
-    #print(old_game_state_batch)
-    
-    
-    current_q = self.q_net(old_game_state_batch)
-    target_q = np.copy(current_q)
-    next_q = self.target_q_net(new_game_state_batch)
-    max_next_q = np.amax(next_q, axis=1)
-    for i in range(old_game_state_batch.shape[0]):
-        target_q[i][action_batch[i]] = reward_batch[i] + 0.95 * max_next_q[i]
-    result = self.q_net.fit(x=state_batch, y=target_q)
+            old_game_state_batch = oldStateBATCH[k]
+            action_batch = [actionBATCH[k]]
+            reward_batch = [rewardBATCH[k]]
+            new_game_state_batch = newStateBATCH[k]             
 
+
+
+            print("old state")
+            print(old_game_state_batch)
+            print("action")
+            print(action_batch)
+            print("reward")
+            print(reward_batch)
+            print("new state")
+            print(new_game_state_batch)
+
+
+            #print("HERE IS THE OLD STATE")
+            #print(old_game_state_batch)
+
+
+            current_q = self.q_net(old_game_state_batch)
+            target_q = np.copy(current_q)
+            next_q = self.target_q_net(new_game_state_batch)
+            max_next_q = np.amax(next_q, axis=1)
+
+
+            for i in range(old_game_state_batch.shape[0]):
+
+                target_q[i][action_batch[i]] = reward_batch[i] + 0.95 * max_next_q[i]
+            result = self.q_net.fit(x=old_game_state_batch, y=target_q)
+
+
+        except Exception as e:
+            print(e)
+
+"""
 #@add_method(self)
 def get_gameplay_batch(self, size):
     
     batch = np.array(self.transitions)
-    
-    
-    
-    
-    old_game_state_batch = batch[3:5:,0][3:5]
-    old_game_state_batch = tf.convert_to_tensor(old_game_state_batch[None, :], dtype=tf.float32)
+
+    old_game_state_batch = batch[:,0]
+    #old_game_state_batch = tf.convert_to_tensor(old_game_state_batch[None, :], dtype=tf.float32)
     action_batch = batch[:,1]
-    action_batch = tf.convert_to_tensor(action_batch[None, :], dtype=tf.float32)
+    #action_batch = tf.convert_to_tensor(action_batch[None, :], dtype=tf.float32)
     reward_batch = batch[:,2]
-    reward_batch = tf.convert_to_tensor(reward_batch[None, :], dtype=tf.float32)
+    #reward_batch = tf.convert_to_tensor(reward_batch[None, :], dtype=tf.float32)
     new_game_state_batch = batch[:,3]
-    new_game_state_batch = tf.convert_to_tensor(new_game_state_batch[None, :], dtype=tf.float32)
+    #new_game_state_batch = tf.convert_to_tensor(new_game_state_batch[None, :], dtype=tf.float32)    
     
-    
-    #print("old state")
-    #print(old_game_state_batch)
-    #print("action")
-    #print(action_batch)
-    #print("reward")
-    #print(reward_batch)
-    #print("new state")
-    #print(new_game_state_batch)
-    
-    return [old_game_state_batch, action_batch, reward_batch, new_game_state_batch]
 
+    for i in range(0, len(old_game_state_batch)):
+        if not old_game_state_batch[i] == None or new_game_state_batch[i] == None:
+            
+            TEMP_old_game_state_batch = old_game_state_batch[i]
+            TEMP_action_batch = [action_batch[i]]
+            TEMP_reward_batch = [reward_batch[i]]
+            TEMP_new_game_state_batch = new_game_state_batch[i]             
+            
+            
+    return [TEMP_old_game_state_batch, TEMP_action_batch, TEMP_reward_batch, TEMP_new_game_state_batch]
 
+"""
 
 #Moritz: Initialize the NN here?
 def setup_training(self):
@@ -86,7 +110,7 @@ def setup_training(self):
     self.do_training = do_training
     self.reward_from_events_TEST = reward_from_events_TEST
     self.transitions = []
-    self.get_gameplay_batch = get_gameplay_batch
+
 
 
 #Severin: Collect rewards and fill experience buffer
@@ -117,12 +141,9 @@ def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_
     else:
         old_game_state = self.reshape_game_state(old_game_state)
         reward = self.reward_from_events_TEST(events)
-
+        action = [i for i in range(0, len(self.actions)) if self.actions[i] == self_action][0]
     new_game_state = self.reshape_game_state(new_game_state)
-    action = self_action    
 
-    
-    
     self.transitions.append([old_game_state,action,reward,new_game_state])
 
 
@@ -152,10 +173,8 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     with open("my-saved-model.pt", "wb") as file:
         pickle.dump(self.model, file)
     '''
-   
     
-    batch = self.get_gameplay_batch(self, 4)
-    self.do_training(self, batch)
+    self.do_training(self)
 
 def reward_from_events(self, events: List[str]) -> int:
     """
@@ -184,23 +203,9 @@ def reward_from_events_TEST(events: List[str]) -> int:
     certain behavior.
     """
     game_rewards = {
-        #Positive rewards
-        e.COIN_FOUND: 0.1, # encourages exploration
-        e.COIN_COLLECTED: 1, 
+        e.COIN_COLLECTED: 1,
         e.KILLED_OPPONENT: 5,
-        e.SURVIVED_ROUND: 5, # encourages survival
-
-        #Move penaltys
-        e.MOVED_DOWN: -0.1, # encourages efficent movement
-        e.MOVED_LEFT: -0.1,
-        e.MOVED_RIGHT: -0.1,
-        e.MOVED_UP: -0.1,
-        e.WAITED: -0.1,
-
-        #Stupid penaltys
-        e.INVALID_ACTION: -3, # encourages to not be stupid
-        e.GOT_KILLED: -10,
-        e.KILLED_SELF: -10
+        
     }
     reward_sum = 0
     for event in events:
