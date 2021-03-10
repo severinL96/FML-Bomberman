@@ -1,82 +1,123 @@
 import os
 import pickle
 import random
-
+import tensorflow as tf
+from tensorflow.keras.layers import (Input,Dense,Lambda)
+from tensorflow.keras.models import Model, Sequential
+from tensorflow.keras.optimizers import Adam
 import numpy as np
 
 
-ACTIONS = ['UP', 'RIGHT', 'DOWN', 'LEFT', 'WAIT', 'BOMB']
+
+actions = ['UP', 'RIGHT', 'DOWN', 'LEFT', 'WAIT', 'BOMB']
+
+def build_q_network_2(learning_rate=0.00001):
+    """Builds a DQN as a Keras model
+    
+    Arguments:
+        n_actions: Number of possible action the agent can take
+        learning_rate: Learning rate
+        input_shape: Shape of the preprocessed frame the model sees
+        history_length: Number of historical frames the agent can see
+        
+    Returns:
+        A compiled Keras model
+    """
+    model_input = Input(shape=(1445,),name='input')
+
+    x = Dense(128, activation='relu',name='layer0')(model_input)
+    x = Dense(64, activation='relu',name='layer1')(x)
+    x = Dense(32, activation='relu',name='layer2')(x)
+    x = Dense(16, activation='relu',name='layer3')(x)
+    
+    q_vals = Dense(6,activation='linear')(x)  #activation ='softmax')(x)
+
+    # Build model
+    model = Model(model_input, q_vals)
+    model.compile(Adam(learning_rate), loss=tf.keras.losses.Huber())
+
+    return model
 
 
+def build_q_network():
+    """
+    Builds a deep neural net which predicts the Q values for all possible
+    actions given a state. The input should have the shape of the state
+    (which is 4 in CartPole), and the output should have the same shape as
+    the action space (which is 2 in CartPole) since we want 1 Q value per
+    possible action.
+    
+    :return: the Q network
+    """
+    q_net = Sequential()
+    q_net.add(Dense(64, input_dim=1445, activation='relu', kernel_initializer='he_uniform'))
+    q_net.add(Dense(32, activation='relu', kernel_initializer='he_uniform'))
+    q_net.add(Dense(2, activation='linear', kernel_initializer='he_uniform'))
+    q_net.compile(optimizer=tf.optimizers.Adam(learning_rate=0.001), loss='mse')
+    return q_net
+
+def reshape_game_state(game_state, vector=True):
+    '''
+    INPUT: game_state dict, size of field, vector = True
+    OUTPUT: all relevant game info, in the shape of [field_size,field_size] or as stacked vector of length 5*field_size**2
+    
+    Function reshapes all information in game state dictionary and 
+    returns info in the form of maps or as unravelled stacked vector
+    '''
+    #extract all data from coin, bomb and players to maps
+    coin_map = np.zeros((17,17))
+    for coin_coord in game_state['coins']:
+        coin_map[coin_coord]=1
+        
+    bomb_map = np.zeros((17,17))
+    for bomb_coord,bomb_time in game_state['bombs']:
+        bomb_map[bomb_coord]=bomb_time
+        
+    player_map = np.zeros((17,17))
+    for name,score,bomb,coord in game_state['others']:
+        if bomb:
+            player_map[coord]= -1
+        else:
+            player_map[coord]= -0.5
+    name,score,bomb,coord = game_state['self']
+    if bomb:
+        player_map[coord]= 1
+    else:
+        player_map[coord]= 0.5
+        
+    #join all maps
+    state = np.stack([game_state['field'],game_state['explosion_map'],coin_map,bomb_map,player_map])
+    if vector:
+        state = state.reshape(-1)
+    
+    state = tf.convert_to_tensor(state[None, :], dtype=tf.float32)
+    return state
 
 def setup(self):
-    """
-    Setup your code. This is called once when loading each agent.
-    Make sure that you prepare everything such that act(...) can be called.
+    '''
+    sets up inital q_net and target_q_net
+    store possible actions
+    '''
+    self.reshape_game_state = reshape_game_state
+    self.q_net = build_q_network()
+    self.target_q_net = build_q_network()
+    self.actions = ['UP', 'RIGHT', 'DOWN', 'LEFT', 'WAIT', 'BOMB']
 
-    When in training mode, the separate `setup_training` in train.py is called
-    after this method. This separation allows you to share your trained agent
-    with other students, without revealing your training code.
-
-    In this example, our model is a set of probabilities over actions
-    that are is independent of the game state.
-
-    :param self: This object is passed to all callbacks and you can set arbitrary values.
-    """
-    if self.train or not os.path.isfile("my-saved-model.pt"):
-        self.logger.info("Setting up model from scratch.")
-        weights = np.random.rand(len(ACTIONS))
-        self.model = weights / weights.sum()
+def act(self,state):
+    '''
+    Query the Q-Net for an action given a state (can be random action)
+    Arguments: 
+        state: state tp give action for
+        ACTIONS: possible actions
+        epsilon: The probability of doing a random move
+    Returns:
+        a string returning the predicted move
+    '''
+    
+    if np.random.rand()<0.1:
+        return np.random.choice(['RIGHT', 'LEFT', 'UP', 'DOWN','WAIT', 'BOMB'], p=[.2, .2, .2, .2,.1,.1])
     else:
-        self.logger.info("Loading model from saved state.")
-        with open("my-saved-model.pt", "rb") as file:
-            self.model = pickle.load(file)
-
-
-#Severin: Step1: Action selection -> Tuples are saved externally?
-def act(self, game_state: dict) -> str:
-    """
-    Your agent should parse the input, think, and take a decision.
-    When not in training mode, the maximum execution time for this method is 0.5s.
-
-    :param self: The same object that is passed to all of your callbacks.
-    :param game_state: The dictionary that describes everything on the board.
-    :return: The action to take as a string.
-    """
-    # todo Exploration vs exploitation
-    random_prob = .1
-    if self.train and random.random() < random_prob:
-        self.logger.debug("Choosing action purely at random.")
-        # 80%: walk in any direction. 10% wait. 10% bomb.
-        return np.random.choice(ACTIONS, p=[.2, .2, .2, .2, .1, .1])
-
-    self.logger.debug("Querying model for action.")
-    return np.random.choice(ACTIONS, p=self.model)
-
-
-#Moritz: Create input features from state
-def state_to_features(game_state: dict) -> np.array:
-    """
-    *This is not a required function, but an idea to structure your code.*
-
-    Converts the game state to the input of your model, i.e.
-    a feature vector.
-
-    You can find out about the state of the game environment via game_state,
-    which is a dictionary. Consult 'get_state_for_agent' in environment.py to see
-    what it contains.
-
-    :param game_state:  A dictionary describing the current game board.
-    :return: np.array
-    """
-    # This is the dict before the game begins and after it ends
-    if game_state is None:
-        return None
-
-    # For example, you could construct several channels of equal shape, ...
-    channels = []
-    channels.append(...)
-    # concatenate them as a feature tensor (they must have the same shape), ...
-    stacked_channels = np.stack(channels)
-    # and return them as a vector
-    return stacked_channels.reshape(-1)
+        state_input = self.reshape_game_state(state)
+        action_q = self.q_net(state_input)  
+        action_index = np.argmax(action_q.numpy()[0], axis=0)
+        return self.actions[action_index]
