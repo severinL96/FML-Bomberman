@@ -14,60 +14,35 @@ def do_training(self):
     take a batch of experiences and update the model
     '''
   
-    
-    batch = np.array(self.transitions)
-
+    batch = np.array(self.transitions, dtype="object")
     oldStateBATCH = batch[:,0]
-    #old_game_state_batch = tf.convert_to_tensor(old_game_state_batch[None, :], dtype=tf.float32)
     actionBATCH = batch[:,1]
-    #action_batch = tf.convert_to_tensor(action_batch[None, :], dtype=tf.float32)
     rewardBATCH = batch[:,2]
-    #reward_batch = tf.convert_to_tensor(reward_batch[None, :], dtype=tf.float32)
-    newStateBATCH= batch[:,3]
-    #new_game_state_batch = tf.convert_to_tensor(new_game_state_batch[None, :], dtype=tf.float32)    
+    newStateBATCH= batch[:,3]   
       
+    # Collect all oldState-expectedReward pairs     
     X=[]
     Y=[]
-
-    
     for k in range(0, len(oldStateBATCH)):
-    
-    
         if oldStateBATCH[k] != None and newStateBATCH[k] != None:
-        
-        #if k != 0 and k!= len(oldStateBATCH):
-    
-    
-
-
-
             old_game_state_batch = oldStateBATCH[k]
             action_batch = [actionBATCH[k]]
             reward_batch = [rewardBATCH[k]]
             new_game_state_batch = newStateBATCH[k]             
-
-
-            #print("HERE IS THE OLD STATE")
-            #print(old_game_state_batch)
-
 
             current_q = self.q_net(old_game_state_batch)
             target_q = np.copy(current_q)
             next_q = self.target_q_net(new_game_state_batch)
             max_next_q = np.amax(next_q, axis=1)
 
-            
+            #Calulate the expected reward
             target_q[0][action_batch[0]] = reward_batch[0] + 0.95 * max_next_q[0]
+            
             X.append(old_game_state_batch)
-            Y.append(target_q)            
+            Y.append(target_q)   
 
-
-  
-    result = self.q_net.fit(x=np.array(X), y=np.array(Y))
-
-    print("")
-    print(actionBATCH)
-    print("")
+    #Fit the model for all collected pairs
+    result = self.q_net.fit(x=np.array(X)[0], y=np.array(Y)[0], verbose=0)
 
 
 def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_state: dict, events: List[str]):
