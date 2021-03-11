@@ -35,12 +35,32 @@ def do_training(self):
             next_q = self.target_q_net(new_game_state_batch)
             max_next_q = np.amax(next_q, axis=1)
 
+            #print("Observed Reward")
+            #print(reward_batch)
+
+            #print("ACTION")
+            #print(action_batch)            
+            #print("Rewards vorher")
+            #print(target_q)
+            
+            
+            
             #Calulate the expected reward
             target_q[0][action_batch[0]] = reward_batch[0] + 0.95 * max_next_q[0]
-            
+      
+
+
+            #print("Rewards nachher")
+            #print(target_q)
+            #print("")
+
+
+
             X.append(old_game_state_batch)
             Y.append(target_q)   
 
+    #print(actionBATCH)
+        
     #Fit the model for all collected pairs
     if self.print_loss:
         result = self.q_net.fit(x=np.array(X)[0], y=np.array(Y)[0], verbose=0)
@@ -92,22 +112,23 @@ def reward_from_events(events):
     """
     game_rewards = {
         #Positive rewards
-        e.COIN_FOUND: 0.1, # encourages exploration
-        e.COIN_COLLECTED: 1, 
-        e.KILLED_OPPONENT: 5,
-        e.SURVIVED_ROUND: 5, # encourages survival
+        #e.COIN_FOUND: 0.1, # encourages exploration
+        e.COIN_COLLECTED: 20, 
+        #e.KILLED_OPPONENT: 10,
+        #e.SURVIVED_ROUND: 1, # encourages survival
 
         #Move penaltys
-        e.MOVED_DOWN: -0.1, # encourages efficent movement
-        e.MOVED_LEFT: -0.1,
-        e.MOVED_RIGHT: -0.1,
-        e.MOVED_UP: -0.1,
-        e.WAITED: -0.1,
+        #e.MOVED_DOWN: -0.1, # encourages efficent movement
+        #e.MOVED_LEFT: -0.1,
+        #e.MOVED_RIGHT: -0.1,
+        #e.MOVED_UP: -0.1,
+        #e.WAITED: -0.1,
+        #e.BOMB_DROPPED: -0.1,
 
         #Stupid penaltys
-        e.INVALID_ACTION: -3, # encourages to not be stupid
-        e.GOT_KILLED: -10,
-        e.KILLED_SELF: -10
+        e.INVALID_ACTION: -5, # encourages to not be stupid
+        #e.GOT_KILLED: -10,
+        e.KILLED_SELF: -20
     }
     reward_sum = 0
     for event in events:
@@ -115,6 +136,7 @@ def reward_from_events(events):
             reward_sum += game_rewards[event]
    
     return reward_sum
+
 
 #Moritz: Initialize the NN here?
 def setup_training(self):
@@ -132,5 +154,7 @@ def setup_training(self):
     self.reward_from_events = reward_from_events
     self.transitions = []
     self.update_target_q_net = update_target_q_net
+    
+    print("TRAINING")
     
 

@@ -22,8 +22,8 @@ def setup(self):
         self.q_net = self.load_model(self,model_location = 'saved_model')
         self.target_q_net = self.load_model(self,model_location = 'saved_model')
     else:
-        self.q_net = build_q_network(learning_rate=0.001)
-        self.target_q_net = build_q_network(learning_rate=0.001)
+        self.q_net = build_q_network(learning_rate=0.01)
+        self.target_q_net = build_q_network(learning_rate=0.01)
     self.actions = ['UP', 'RIGHT', 'DOWN', 'LEFT', 'WAIT', 'BOMB']
 
 def act(self,state):
@@ -36,13 +36,22 @@ def act(self,state):
     Returns:
         a string returning the predicted move
     '''
-    if np.random.rand()<0.1:
-        return np.random.choice(['RIGHT', 'LEFT', 'UP', 'DOWN','WAIT', 'BOMB'], p=[.2, .2, .2, .2,.1,.1])
+    
+    
+    if self.train == True: 
+    
+        if np.random.rand()<0.1:
+            return np.random.choice(['RIGHT', 'LEFT', 'UP', 'DOWN','WAIT', 'BOMB'], p=[.2, .2, .2, .2,.1,.1])
+        
+        else:
+            state_input = self.reshape_game_state(state)
+            action_q = self.q_net(state_input)  
+            action_index = np.argmax(action_q.numpy()[0], axis=0)
+            return self.actions[action_index]
+
     else:
+        
         state_input = self.reshape_game_state(state)
         action_q = self.q_net(state_input)  
         action_index = np.argmax(action_q.numpy()[0], axis=0)
         return self.actions[action_index]
-
-
-

@@ -36,7 +36,7 @@ def build_difficult_q_network(learning_rate=0.00001):
     return model
 
 
-def build_q_network(learning_rate=0.001):
+def build_q_network(learning_rate=0.01):
     """
     Builds a deep neural net which predicts the Q values for all possible
     actions given a state. The input should have the shape of the state
