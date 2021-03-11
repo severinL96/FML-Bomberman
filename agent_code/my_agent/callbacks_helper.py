@@ -36,7 +36,7 @@ def build_difficult_q_network(learning_rate=0.00001):
     return model
 
 
-def build_q_network(learning_rate=0.01):
+def build_q_network(learning_rate=0.001):
     """
     Builds a deep neural net which predicts the Q values for all possible
     actions given a state. The input should have the shape of the state
@@ -72,37 +72,45 @@ def load_model(self,model_location):
 def reshape_game_state(game_state, vector=True):
     '''
     INPUT: game_state dict, size of field, vector = True
+            game_state: {field: array(w,h),
+                        bombs:[(int,int),int],
+                        exp.map: array(w,h),
+                        coins[(x,y)]
+                        self:(str,int,bool,(int,int))
+                        others:(str,int,bool,(int,int))
+                        }
     OUTPUT: all relevant game info, in the shape of [field_size,field_size] or as stacked vector of length 5*field_size**2
     
     Function reshapes all information in game state dictionary and 
     returns info in the form of maps or as unravelled stacked vector
     '''
-    #extract all data from coin, bomb and players to maps
-    coin_player_map = np.zeros((17,17))
-    for coin_coord in game_state['coins']:
-        coin_player_map[coin_coord]=1
 
-    for name,score,bomb,coord in game_state['others']:
-        if bomb:
-            coin_player_map[coord]= -1
-        else:
-            coin_player_map[coord]= -0.5
+    info_map = np.zeros((17,17))
 
     name,score,bomb,coord = game_state['self']
-    if bomb:
-        coin_player_map[coord]= 1
-    else:
-        coin_player_map[coord]= 0.5
+    info_map[coord]= 1
+    
+    for name,score,bomb,coord in game_state['others']:
+        info_map[coord]= .8
 
-    field_bomb_map = game_state['field']
-    for bomb_coord,bomb_time in game_state['bombs']:
-        field_bomb_map[bomb_coord]=bomb_time
+    for coin in game_state['coins']:
+        info_map[coin] = .6
+
+    field = game_state['field']
+    field = np.where(field == -1, .4, field) #revalue wall
+    field = np.where(field == 1, .2, field) #revalue crate
+    info_map = np.where(field!=0,field,info_map) #add field data to info
+
+    explosion = - game_state['explosion_map']/4
+    info_map = np.where(field!=0,field,explosion)
+
+    for coord, timer in game_state['bombs']:
+        info_map[coord] = -(timer/10 + .6)
+
         
 
     #join all maps
-    state = np.stack([field_bomb_map,game_state['explosion_map'],coin_player_map])
     if vector:
-        state = state.reshape(-1)
-    
-    state = tf.convert_to_tensor(state[None, :], dtype=tf.float32)
-    return state
+        info_map = info_map.reshape(-1)
+    info_map = tf.convert_to_tensor(info_map[None, :], dtype=tf.float32)
+    return info_map
