@@ -42,7 +42,7 @@ def act(self,state):
     if self.train == True: 
     
         if np.random.rand()<randomProb:
-            return np.random.choice(['RIGHT', 'LEFT', 'UP', 'DOWN','WAIT', 'BOMB'], p=[.2, .2, .2, .2,.1,.1])
+            return np.random.choice(['RIGHT', 'LEFT', 'UP', 'DOWN','WAIT', 'BOMB'], p=[.2, .2, .2, .2,.175,.025])
         
         else:
             state_input = self.reshape_game_state(state)

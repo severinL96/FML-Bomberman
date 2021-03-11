@@ -59,13 +59,21 @@ def do_training(self):
             X.append(old_game_state_batch)
             Y.append(target_q)   
 
-    #print(actionBATCH)
+    
         
     #Fit the model for all collected pairs
+    result = self.q_net.fit(x=np.array(X)[0], y=np.array(Y)[0], verbose=0)
+        
     if self.print_loss:
-        result = self.q_net.fit(x=np.array(X)[0], y=np.array(Y)[0], verbose=0)
         loss = result.history['loss'][0]
-        print('loss:' +str(loss))
+        #with open("loss.txt", "a") as fp:   #Pickling
+        #    pickle.dump(loss, fp)
+            
+            
+        with open("loss.txt", 'a') as file: 
+            file.write(str(loss)+"\n")
+            
+        #print('loss:' +str(loss))
 
 
 def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_state: dict, events: List[str]):
@@ -113,22 +121,22 @@ def reward_from_events(events):
     game_rewards = {
         #Positive rewards
         #e.COIN_FOUND: 0.1, # encourages exploration
-        e.COIN_COLLECTED: 20, 
+        e.COIN_COLLECTED: 0.7, 
         #e.KILLED_OPPONENT: 10,
         #e.SURVIVED_ROUND: 1, # encourages survival
 
         #Move penaltys
-        #e.MOVED_DOWN: -0.1, # encourages efficent movement
-        #e.MOVED_LEFT: -0.1,
-        #e.MOVED_RIGHT: -0.1,
-        #e.MOVED_UP: -0.1,
-        #e.WAITED: -0.1,
-        #e.BOMB_DROPPED: -0.1,
+        e.MOVED_DOWN: -0.1, # encourages efficent movement
+        e.MOVED_LEFT: -0.1,
+        e.MOVED_RIGHT: -0.1,
+        e.MOVED_UP: -0.1,
+        e.WAITED: -0.1,
+        e.BOMB_DROPPED: -0.1,
 
         #Stupid penaltys
-        e.INVALID_ACTION: -5, # encourages to not be stupid
+        e.INVALID_ACTION: -.7, # encourages to not be stupid
         #e.GOT_KILLED: -10,
-        e.KILLED_SELF: -20
+        e.KILLED_SELF: -1
     }
     reward_sum = 0
     for event in events:
@@ -150,7 +158,7 @@ def setup_training(self):
     # Example: Setup an array that will note transition tuples
     # (s, a, r, s')
     self.do_training = do_training
-    self.print_loss = False
+    self.print_loss = True
     self.reward_from_events = reward_from_events
     self.transitions = []
     self.update_target_q_net = update_target_q_net
