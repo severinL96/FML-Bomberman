@@ -7,6 +7,7 @@ import tensorflow as tf
 import events as e
 from .callbacks import reshape_game_state
 from .train_helper import *
+import time
 
 
 def do_training(self):
@@ -34,36 +35,32 @@ def do_training(self):
             target_q = np.copy(current_q)
             next_q = self.target_q_net(new_game_state_batch)
             max_next_q = np.amax(next_q, axis=1)
-
-            #print("Observed Reward")
-            #print(reward_batch)
-
-            #print("ACTION")
-            #print(action_batch)            
-            #print("Rewards vorher")
-            #print(target_q)
-            
-            
             
             #Calulate the expected reward
             target_q[0][action_batch[0]] = reward_batch[0] + 0.7 * max_next_q[0]
-      
 
+            """
+            print("Observed Reward")
+            print(reward_batch)
 
-            #print("Rewards nachher")
-            #print(target_q)
-            #print("")
-
-
-
+            print("ACTION")
+            print(action_batch)            
+            print("Rewards vorher")
+            print(target_q)
+            
+            print("Rewards nachher")
+            print(target_q)
+            print("")
+            """
             X.append(old_game_state_batch)
             Y.append(target_q)   
 
     
         
     #Fit the model for all collected pairs
+    start = time.time()
     result = self.q_net.fit(x=np.array(X)[0], y=np.array(Y)[0], verbose=0)
-        
+    print('one training session needed '+str(time.time()-start)+' seconds')
     if self.print_loss:
         loss = result.history['loss'][0]
         #with open("loss.txt", "a") as fp:   #Pickling
