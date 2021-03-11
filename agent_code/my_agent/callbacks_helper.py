@@ -63,6 +63,8 @@ def build_q_network(learning_rate=0.001):
     :return: the Q network
     """
     q_net = Sequential()
+    q_net.add(Dense(256, input_dim=289, activation='relu', kernel_initializer='he_uniform'))
+    q_net.add(Dense(128, input_dim=289, activation='relu', kernel_initializer='he_uniform'))
     q_net.add(Dense(64, input_dim=289, activation='relu', kernel_initializer='he_uniform'))
     q_net.add(Dense(32, activation='relu', kernel_initializer='he_uniform'))
     q_net.add(Dense(6, activation='linear', kernel_initializer='he_uniform'))
