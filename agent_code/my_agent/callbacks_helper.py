@@ -20,7 +20,7 @@ def build_difficult_q_network(learning_rate=0.00001):
     Returns:
         A compiled Keras model
     """
-    model_input = Input(shape=(1445,),name='input')
+    model_input = Input(shape=(289,),name='input')
 
     x = Dense(128, activation='relu',name='layer0')(model_input)
     x = Dense(64, activation='relu',name='layer1')(x)
@@ -47,7 +47,7 @@ def build_q_network(learning_rate=0.001):
     :return: the Q network
     """
     q_net = Sequential()
-    q_net.add(Dense(64, input_dim=867, activation='relu', kernel_initializer='he_uniform'))
+    q_net.add(Dense(64, input_dim=289, activation='relu', kernel_initializer='he_uniform'))
     q_net.add(Dense(32, activation='relu', kernel_initializer='he_uniform'))
     q_net.add(Dense(6, activation='linear', kernel_initializer='he_uniform'))
     q_net.compile(optimizer=tf.optimizers.Adam(learning_rate=0.001), loss='mse')

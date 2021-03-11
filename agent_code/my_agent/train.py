@@ -46,7 +46,7 @@ def do_training(self):
             
             
             #Calulate the expected reward
-            target_q[0][action_batch[0]] = reward_batch[0] + 0.95 * max_next_q[0]
+            target_q[0][action_batch[0]] = reward_batch[0] + 0.7 * max_next_q[0]
       
 
 

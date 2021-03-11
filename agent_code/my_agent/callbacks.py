@@ -37,10 +37,11 @@ def act(self,state):
         a string returning the predicted move
     '''
     
-    
+    randomProb = round(max(0.9 - (state["round"])/100, 0.05), 2)
+ 
     if self.train == True: 
     
-        if np.random.rand()<0.1:
+        if np.random.rand()<randomProb:
             return np.random.choice(['RIGHT', 'LEFT', 'UP', 'DOWN','WAIT', 'BOMB'], p=[.2, .2, .2, .2,.1,.1])
         
         else:
