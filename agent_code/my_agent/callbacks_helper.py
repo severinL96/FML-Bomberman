@@ -1,9 +1,11 @@
-import tensorflow as tf
-from tensorflow.keras.layers import (Input,Dense)
+aaimport tensorflow as tf
+from tensorflow.keras.layers import (Input,Dense,Lambda)
 from tensorflow.keras.models import Model, Sequential, load_model
 from tensorflow.keras import models
 from tensorflow.keras.optimizers import Adam
 import numpy as np
+from scipy.spatial import distance
+
 
 ############################################################
 # init different models
@@ -22,10 +24,10 @@ def build_difficult_q_network(learning_rate=0.00001):
     """
     model_input = Input(shape=(289,),name='input')
 
-    x = Dense(128, activation='sigmoid',name='layer0')(model_input)
-    x = Dense(64, activation='sigmoid',name='layer1')(x)
-    x = Dense(32, activation='sigmoid',name='layer2')(x)
-    x = Dense(16, activation='sigmoid',name='layer3')(x)
+    x = Dense(128, activation='relu',name='layer0')(model_input)
+    x = Dense(64, activation='relu',name='layer1')(x)
+    x = Dense(32, activation='relu',name='layer2')(x)
+    x = Dense(16, activation='relu',name='layer3')(x)
     
     q_vals = Dense(6,activation='linear')(x)  #activation ='softmax')(x)
 
@@ -34,6 +36,20 @@ def build_difficult_q_network(learning_rate=0.00001):
     model.compile(Adam(learning_rate), loss=tf.keras.losses.Huber())
 
     return model
+
+
+def customLossFunction(true, pred):
+
+    
+    diff = tf.math.subtract(true, pred)
+    ABS = tf.math.abs(diff)
+    MAX = tf.math.reduce_max(ABS)
+    return MAX
+
+    
+    
+    
+
 
 
 def build_q_network(learning_rate=0.001):
@@ -50,7 +66,9 @@ def build_q_network(learning_rate=0.001):
     q_net.add(Dense(64, input_dim=289, activation='relu', kernel_initializer='he_uniform'))
     q_net.add(Dense(32, activation='relu', kernel_initializer='he_uniform'))
     q_net.add(Dense(6, activation='linear', kernel_initializer='he_uniform'))
-    q_net.compile(optimizer=tf.optimizers.Adam(learning_rate=0.001), loss='mse')
+    
+    
+    q_net.compile(optimizer=tf.optimizers.Adam(learning_rate=0.001), loss=customLossFunction)
     return q_net
 
 ############################################################
@@ -80,7 +98,7 @@ def reshape_game_state(game_state, vector=True):
                         others:(str,int,bool,(int,int))
                         }
     OUTPUT: all relevant game info, in the shape of [field_size,field_size] or as stacked vector of length 5*field_size**2
-    
+
     Function reshapes all information in game state dictionary and 
     returns info in the form of maps or as unravelled stacked vector
     '''
@@ -103,7 +121,6 @@ def reshape_game_state(game_state, vector=True):
     explosion = - game_state['explosion_map']/4
     info_map = np.where(explosion!=0,explosion,info_map)
 
-    print(info_map)
     for coord, timer in game_state['bombs']:
         info_map[coord] = -(timer/10 + .6)
 
