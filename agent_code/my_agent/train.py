@@ -25,6 +25,10 @@ def do_training(self):
     X=[]
     Y=[]
     for k in range(0, len(oldStateBATCH)):
+
+        
+
+
         if oldStateBATCH[k] != None and newStateBATCH[k] != None:
             old_game_state_batch = oldStateBATCH[k]
             action_batch = [actionBATCH[k]]
@@ -35,32 +39,47 @@ def do_training(self):
             target_q = np.copy(current_q)
             next_q = self.target_q_net(new_game_state_batch)
             max_next_q = np.amax(next_q, axis=1)
+
+
+
+        
+
             
+            old = target_q[0][action_batch[0]]
             #Calulate the expected reward
             target_q[0][action_batch[0]] = reward_batch[0] + 0.7 * max_next_q[0]
 
-            """
-            print("Observed Reward")
-            print(reward_batch)
-
-            print("ACTION")
-            print(action_batch)            
-            print("Rewards vorher")
-            print(target_q)
+            new = target_q[0][action_batch[0]]
             
-            print("Rewards nachher")
-            print(target_q)
-            print("")
-            """
-            X.append(old_game_state_batch)
-            Y.append(target_q)   
+            print("Action: " +  str(self.actions[action_batch[0]]) + ", REWARD: " +  str(reward_batch[0]) + ", Vorher: " +  str(old) + ", Nachher: " +  str(new)) 
 
-    
-        
+            X.append(old_game_state_batch)
+            Y.append(target_q) 
+
+
+        elif k == len(oldStateBATCH)-1:
+            old_game_state_batch = oldStateBATCH[k]
+            action_batch = [actionBATCH[k]]
+            reward_batch = [rewardBATCH[k]]
+
+
+            current_q = self.q_net(old_game_state_batch)
+            target_q = np.copy(current_q)
+
+
+            #Calulate the expected reward
+            target_q[0][action_batch[0]] = reward_batch[0]
+
+            X.append(old_game_state_batch)
+            Y.append(target_q)                 
+
+
+
+
     #Fit the model for all collected pairs
-    start = time.time()
+    #start = time.time()
     result = self.q_net.fit(x=np.array(X)[0], y=np.array(Y)[0], verbose=0)
-    print('one training session needed '+str(time.time()-start)+' seconds')
+    #print('one training session needed '+str(time.time()-start)+' seconds')
     if self.print_loss:
         loss = result.history['loss'][0]
         #with open("loss.txt", "a") as fp:   #Pickling
@@ -105,7 +124,11 @@ def end_of_round(self, last_game_state: dict, last_action: str, events: List[str
     self.transitions.append([last_game_state,action,reward,None])
 
     self.do_training(self)
+    self.do_training(self)
+    
     self.update_target_q_net(self)
+
+    
     self.save_model(self)
 
 def reward_from_events(events):

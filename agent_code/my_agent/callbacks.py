@@ -26,6 +26,11 @@ def setup(self):
         self.target_q_net = build_q_network(learning_rate=0.01)
     self.actions = ['UP', 'RIGHT', 'DOWN', 'LEFT', 'WAIT', 'BOMB']
 
+    
+    
+
+    
+    
 def act(self,state):
     '''
     Query the Q-Net for an action given a state (can be random action)
@@ -36,6 +41,8 @@ def act(self,state):
     Returns:
         a string returning the predicted move
     '''
+    
+
     
     randomProb = round(max(0.9 - (state["round"])/100, 0.05), 2)
  

@@ -1,4 +1,4 @@
-aaimport tensorflow as tf
+import tensorflow as tf
 from tensorflow.keras.layers import (Input,Dense,Lambda)
 from tensorflow.keras.models import Model, Sequential, load_model
 from tensorflow.keras import models
@@ -44,6 +44,7 @@ def customLossFunction(true, pred):
     diff = tf.math.subtract(true, pred)
     ABS = tf.math.abs(diff)
     MAX = tf.math.reduce_max(ABS)
+
     return MAX
 
     
