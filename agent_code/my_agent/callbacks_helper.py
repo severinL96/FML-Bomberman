@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tensorflow.keras.layers import (Input,Dense,Lambda)
+from tensorflow.keras.layers import (Input,Dense)
 from tensorflow.keras.models import Model, Sequential, load_model
 from tensorflow.keras import models
 from tensorflow.keras.optimizers import Adam
@@ -22,10 +22,10 @@ def build_difficult_q_network(learning_rate=0.00001):
     """
     model_input = Input(shape=(289,),name='input')
 
-    x = Dense(128, activation='relu',name='layer0')(model_input)
-    x = Dense(64, activation='relu',name='layer1')(x)
-    x = Dense(32, activation='relu',name='layer2')(x)
-    x = Dense(16, activation='relu',name='layer3')(x)
+    x = Dense(128, activation='sigmoid',name='layer0')(model_input)
+    x = Dense(64, activation='sigmoid',name='layer1')(x)
+    x = Dense(32, activation='sigmoid',name='layer2')(x)
+    x = Dense(16, activation='sigmoid',name='layer3')(x)
     
     q_vals = Dense(6,activation='linear')(x)  #activation ='softmax')(x)
 
