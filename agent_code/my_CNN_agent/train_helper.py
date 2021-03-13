@@ -59,24 +59,26 @@ def reward_from_events(self, events):
     Here you can modify the rewards your agent get so as to en/discourage
     certain behavior.
     """
+    move_penalty = 0
     game_rewards = {
         #Positive rewards
         e.COIN_FOUND: 0.1, # encourages exploration
         e.COIN_COLLECTED: 1, 
+        e.CRATE_DESTROYED: 0.1,
         e.KILLED_OPPONENT: 0.1,
         e.SURVIVED_ROUND: .5, # encourages survival
 
         #Move penaltys
-        e.MOVED_DOWN: -0.001, # encourages efficent movement
-        e.MOVED_LEFT: -0.001,
-        e.MOVED_RIGHT: -0.001,
-        e.MOVED_UP: -0.001,
-        e.WAITED: -0.5,
+        e.MOVED_DOWN: move_penalty, # encourages efficent movement
+        e.MOVED_LEFT: move_penalty,
+        e.MOVED_RIGHT: move_penalty,
+        e.MOVED_UP: move_penalty,
+        e.WAITED: 0,
         
         #Stupid penaltys
-        e.INVALID_ACTION: -.1, # encourages to not be stupid
+        e.INVALID_ACTION: 0, # encourages to not be stupid
         e.GOT_KILLED: 0,
-        e.KILLED_SELF: -1
+        e.KILLED_SELF: -.5
     }
 
     reward_sum = 0

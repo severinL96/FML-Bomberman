@@ -44,7 +44,7 @@ def act(self, game_state: dict) -> str:
     :return: The action to take as a string.
     """
     # todo Exploration vs exploitation
-    random_prob = 0.3
+    random_prob = 0.8
     if self.train and random.random() <= random_prob:
         #self.logger.debug("Choosing action purely at random.")
         return np.random.choice(ACTIONS, p=[.22, .22, .22, .22, .06, .06])
