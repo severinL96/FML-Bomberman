@@ -1,6 +1,7 @@
 import os
 import random
 import numpy as np
+from tensorflow.keras import models
 from .callbacks_helper import *
 
 ACTIONS = ['UP', 'RIGHT', 'DOWN', 'LEFT', 'WAIT', 'BOMB']
@@ -20,14 +21,14 @@ def setup(self):
 
     :param self: This object is passed to all callbacks and you can set arbitrary values.
     """
-    self.train = False
-    self.load_model = None
+    self.random_prob = 1
+    self.load_model = 'random_train'
 
     if self.load_model is not None:
         pass
-        #self.logger.info("loading model "+self.load_model)
-        #self.q_net = load_model(self,model_location = 'saved_model')
-        #self.target_q_net = load_model(self,model_location = 'saved_model')
+        self.logger.info("loading model "+self.load_model)
+        self.q_net = models.load_model(self.load_model)
+        self.target_q_net = models.load_model(self.load_model)
     else:
         self.logger.info("creating new model.")
         self.q_net = build_q_network(learning_rate=0.01)
@@ -44,16 +45,18 @@ def act(self, game_state: dict) -> str:
     :return: The action to take as a string.
     """
     # todo Exploration vs exploitation
-    random_prob = .2
-
-    if self.train and random.random() < random_prob:
+    
+    if self.train and random.random() <= self.random_prob:
         self.logger.debug("Choosing action purely at random.")
-        return np.random.choice(ACTIONS, p=[.2, .2, .2, .2, .1, .1])
+        return np.random.choice(ACTIONS, p=[.22, .22, .22, .22, .06, .06])
+
 
     self.logger.debug("Querying model for action.")
     state_vector = state_to_vector(game_state)
     action_q = self.q_net(state_vector).numpy()[0]    
-    return ACTIONS[np.argmax(action_q,axis=0)]
+    print(ACTIONS[np.argmax(action_q)],np.argmax(action_q))
+    print(action_q)
+    return ACTIONS[np.argmax(action_q)]
 
 
 

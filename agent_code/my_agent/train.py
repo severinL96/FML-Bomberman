@@ -42,7 +42,7 @@ def do_training(self):
 
             new = target_q[0][action_batch[0]]
             
-            print("Action: " +  str(self.actions[action_batch[0]]) + ", REWARD: " +  str(reward_batch[0]) + ", Vorher: " +  str(old) + ", Nachher: " +  str(new)) 
+            #print("Action: " +  str(self.actions[action_batch[0]]) + ", REWARD: " +  str(reward_batch[0]) + ", Vorher: " +  str(old) + ", Nachher: " +  str(new)) 
 
             X.append(old_game_state_batch)
             Y.append(target_q) 
@@ -63,10 +63,16 @@ def do_training(self):
 
             X.append(old_game_state_batch)
             Y.append(target_q)                 
-
+    print(X[0])
+    print(Y[0])
+    X = np.array(X)[0]
+    Y = np.array(Y)[0]
+    
+    print(X.shape)
+    print(Y.shape)
     #Fit the model for all collected pairs
     #start = time.time()
-    result = self.q_net.fit(x=np.array(X)[0], y=np.array(Y)[0], verbose=0)
+    result = self.q_net.fit(x=X, y=Y, verbose=0)
     #print('one training session needed '+str(time.time()-start)+' seconds')
     if self.print_loss:
         loss = result.history['loss'][0]
