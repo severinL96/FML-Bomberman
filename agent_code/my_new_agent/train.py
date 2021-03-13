@@ -1,7 +1,7 @@
 import pickle
 import random
 from typing import List
-
+import os
 import events as e
 from .callbacks import state_to_vector
 from .train_helper import do_training, reward_from_events
@@ -21,6 +21,16 @@ def setup_training(self):
     :param self: This object is passed to all callbacks and you can set arbitrary values.
     """
     self.transitions = []
+    self.save_location = './saved_models/Dense_2000_epochs_more_random'
+    
+    
+    
+    if not os.path.isdir(self.save_location):
+        os.mkdir(self.save_location)
+    with open(self.save_location+"/loss.txt", 'w') as file: 
+        file.truncate(0)
+        file.close()
+
 
 def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_state: dict, events):
     """
@@ -54,15 +64,15 @@ def end_of_round(self, last_game_state: dict, last_action: str, events):
     self.logger.debug(f'Encountered event(s) {", ".join(map(repr, events))} in final step')
     
     #store the last state
-    last_game_state = state_to_vector(last_game_state)
+    last_state_vector = state_to_vector(last_game_state)
     reward = reward_from_events(self,events)
     action = ACTIONS.index(last_action)
-    self.transitions.append([last_game_state,action,reward,None])
+    self.transitions.append([last_state_vector,action,reward,None])
 
     # train the model and update the target q net
     do_training(self)
-    self.target_q_net.set_weights(self.q_net.get_weights())
-
-    self.q_net.save("random_train")
+    if last_game_state['round']%50 == 0:
+        self.target_q_net.set_weights(self.q_net.get_weights())
+        self.q_net.save(self.save_location)
 
 

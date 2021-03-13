@@ -21,8 +21,8 @@ def setup(self):
 
     :param self: This object is passed to all callbacks and you can set arbitrary values.
     """
-    self.random_prob = 1
-    self.load_model = 'random_train'
+    self.random_prob = True
+    self.load_model = None #'random_train'
 
     if self.load_model is not None:
         pass
@@ -31,8 +31,8 @@ def setup(self):
         self.target_q_net = models.load_model(self.load_model)
     else:
         self.logger.info("creating new model.")
-        self.q_net = build_q_network(learning_rate=0.01)
-        self.target_q_net = build_q_network(learning_rate=0.01)
+        self.q_net = build_q_network(learning_rate=0.00001)
+        self.target_q_net = build_q_network(learning_rate=0.00001)
 
 
 def act(self, game_state: dict) -> str:
@@ -45,17 +45,17 @@ def act(self, game_state: dict) -> str:
     :return: The action to take as a string.
     """
     # todo Exploration vs exploitation
-    
-    if self.train and random.random() <= self.random_prob:
-        self.logger.debug("Choosing action purely at random.")
+    if self.random_prob:
+        random_prob = 1- (game_state['round']/4000)
+
+    if self.train and random.random() <= random_prob:
+        #self.logger.debug("Choosing action purely at random.")
         return np.random.choice(ACTIONS, p=[.22, .22, .22, .22, .06, .06])
 
 
-    self.logger.debug("Querying model for action.")
     state_vector = state_to_vector(game_state)
     action_q = self.q_net(state_vector).numpy()[0]    
-    print(ACTIONS[np.argmax(action_q)],np.argmax(action_q))
-    print(action_q)
+    #self.(ACTIONS[np.argmax(action_q)],np.argmax(action_q))
     return ACTIONS[np.argmax(action_q)]
 
 

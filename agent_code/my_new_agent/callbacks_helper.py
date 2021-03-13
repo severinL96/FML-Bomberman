@@ -6,7 +6,7 @@ import numpy as np
 
 
 
-def build_q_network(learning_rate=0.000001):
+def build_q_network(learning_rate=0.001):
     """
     Builds a deep neural net which predicts the Q values for all possible
     actions given a state. The input should have the shape of the state
@@ -24,7 +24,7 @@ def build_q_network(learning_rate=0.000001):
     q_net.add(Dense(6, activation='linear', kernel_initializer='he_uniform'))
     
     
-    q_net.compile(optimizer=Adam(learning_rate=learning_rate), loss='categorical_crossentropy')
+    q_net.compile(optimizer=Adam(learning_rate=learning_rate), loss=tf.keras.losses.Huber())
     return q_net
 
 def state_to_vector(game_state):
