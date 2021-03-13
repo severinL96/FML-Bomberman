@@ -4,7 +4,7 @@ from typing import List
 import os
 import events as e
 from .callbacks import state_to_map
-from .train_helper import do_training, reward_from_events, do_training_with_PER, do_training_with_PER_2
+from .train_helper import do_training, reward_from_events, do_training_with_PER_2
 
 ACTIONS = ['UP', 'RIGHT', 'DOWN', 'LEFT', 'WAIT', 'BOMB']
 
