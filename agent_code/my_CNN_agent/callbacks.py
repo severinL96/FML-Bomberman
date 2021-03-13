@@ -21,8 +21,7 @@ def setup(self):
 
     :param self: This object is passed to all callbacks and you can set arbitrary values.
     """
-    self.random_prob = True
-    self.load_model = None #'random_train'
+    self.load_model = None #'./saved_models/CNN_first_try'
 
     if self.load_model is not None:
         pass
@@ -31,8 +30,8 @@ def setup(self):
         self.target_q_net = models.load_model(self.load_model)
     else:
         self.logger.info("creating new model.")
-        self.q_net = build_q_network(learning_rate=0.00001)
-        self.target_q_net = build_q_network(learning_rate=0.00001)
+        self.q_net = build_q_network(learning_rate=10e-5)
+        self.target_q_net = build_q_network(learning_rate=10e-5)
 
 
 def act(self, game_state: dict) -> str:
@@ -45,19 +44,15 @@ def act(self, game_state: dict) -> str:
     :return: The action to take as a string.
     """
     # todo Exploration vs exploitation
-    if self.random_prob:
-        random_prob = 1- (game_state['round']/8000)
-        if game_state['round'] > 1900:
-            random_prob = 0
+    random_prob = 0.3
     if self.train and random.random() <= random_prob:
         #self.logger.debug("Choosing action purely at random.")
         return np.random.choice(ACTIONS, p=[.22, .22, .22, .22, .06, .06])
 
-
     state_map = state_to_map(game_state)
     state_map = np.expand_dims(state_map,axis=0)
     action_q = self.q_net(state_map).numpy()[0]    
-    #self.(ACTIONS[np.argmax(action_q)],np.argmax(action_q))
+
     return ACTIONS[np.argmax(action_q)]
 
 

@@ -23,7 +23,7 @@ def do_training(self):
         next_q = self.target_q_net(np.expand_dims(new_state,axis=0))
     
         # correct the prediction for highest rewards
-        target_q[action] = reward + 0.7 * np.amax(next_q)
+        target_q[action] = reward + 0.95 * np.amax(next_q)
        
         self.logger.debug(str(action) + ACTIONS[action])
         self.logger.debug('current'+str(np.array(current_q)))
@@ -46,7 +46,7 @@ def do_training(self):
     Y = np.array(Y)
 
     # train the model on the new data and update the target q net
-    history = self.q_net.fit(x = X,y = Y, verbose=0) 
+    history = self.q_net.fit(x = X,y = Y, verbose=0,batch_size = 16) 
     with open(self.save_location + "/loss.txt", 'a') as file: 
             file.write(str(history.history['loss'][0])+"\n")
     self.transitions = []
@@ -67,14 +67,14 @@ def reward_from_events(self, events):
         e.SURVIVED_ROUND: .5, # encourages survival
 
         #Move penaltys
-        e.MOVED_DOWN: -0.1, # encourages efficent movement
-        e.MOVED_LEFT: -0.1,
-        e.MOVED_RIGHT: -0.1,
-        e.MOVED_UP: -0.1,
-        e.WAITED: -0.1,
+        e.MOVED_DOWN: -0.001, # encourages efficent movement
+        e.MOVED_LEFT: -0.001,
+        e.MOVED_RIGHT: -0.001,
+        e.MOVED_UP: -0.001,
+        e.WAITED: -0.5,
         
         #Stupid penaltys
-        e.INVALID_ACTION: -.5, # encourages to not be stupid
+        e.INVALID_ACTION: -.1, # encourages to not be stupid
         e.GOT_KILLED: 0,
         e.KILLED_SELF: -1
     }

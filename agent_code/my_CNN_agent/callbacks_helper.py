@@ -23,7 +23,6 @@ def build_q_network(learning_rate=0.001):
     q_net.add(MaxPooling2D((2, 2)))
     q_net.add(Conv2D(32, (3, 3), activation='sigmoid'))
     q_net.add(Flatten())
-    q_net.add(Dense(256, activation='sigmoid', kernel_initializer='he_uniform'))
     q_net.add(Dense(128, activation='sigmoid', kernel_initializer='he_uniform'))
     q_net.add(Dense(64, activation='sigmoid', kernel_initializer='he_uniform'))
     q_net.add(Dense(32, activation='sigmoid', kernel_initializer='he_uniform'))
