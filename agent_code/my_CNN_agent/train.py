@@ -4,7 +4,7 @@ from typing import List
 import os
 import events as e
 from .callbacks import state_to_map
-from .train_helper import do_training, reward_from_events
+from .train_helper import do_training, reward_from_events, do_training_with_PER, do_training_with_PER_2
 
 ACTIONS = ['UP', 'RIGHT', 'DOWN', 'LEFT', 'WAIT', 'BOMB']
 
@@ -22,8 +22,6 @@ def setup_training(self):
     """
     self.transitions = []
     self.save_location = './saved_models/CNN_first_try'
-    
-    
     
     if not os.path.isdir(self.save_location):
         os.mkdir(self.save_location)
@@ -70,7 +68,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events):
     self.transitions.append([last_state_vector,action,reward,None])
 
     # train the model and update the target q net
-    do_training(self)
+    do_training_with_PER_2(self)
     if last_game_state['round']%50 == 0:
         self.target_q_net.set_weights(self.q_net.get_weights())
         self.q_net.save(self.save_location)

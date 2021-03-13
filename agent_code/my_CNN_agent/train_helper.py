@@ -51,6 +51,113 @@ def do_training(self):
             file.write(str(history.history['loss'][0])+"\n")
     self.transitions = []
 
+def do_training_with_PER_2(self):
+    '''
+    INPUT: Transitions
+
+    Takes the transitions and calculates q values for the respective
+    states. Trains the model to correctly predict an actions q value
+    '''
+    X = []
+    Y = []    
+    diff = [] 
+    diff.append(-1000) # add spacer since we ignore first state
+    for transition in self.transitions[1:-1]: # ingore first move
+        old_state, action, reward, new_state = transition
+
+        current_q = self.q_net(np.expand_dims(old_state,axis=0))
+        target_q = np.copy(current_q)[0]
+        next_q = self.target_q_net(np.expand_dims(new_state,axis=0))
+
+    
+        # correct the prediction for highest rewards
+        target_q[action] = reward + 0.95 * np.amax(next_q)
+        
+        diff.append(np.linalg.norm(current_q - target_q))
+       
+
+    try:
+        indices = list(np.argpartition(diff,-10)[-10:])
+        print(indices)
+    
+        for transition in [self.transitions[i] for i in indices]:
+            old_state, action, reward, new_state = transition
+
+            current_q = self.q_net(np.expand_dims(old_state,axis=0))
+            target_q = np.copy(current_q)[0]
+            next_q = self.target_q_net(np.expand_dims(new_state,axis=0))
+
+        
+            # correct the prediction for highest rewards
+            target_q[action] = reward + 0.95 * np.amax(next_q)
+            
+            diff.append(np.linalg.norm(current_q - target_q))
+            
+            X.append(old_state)
+            Y.append(target_q)
+        
+
+        
+        X = np.array(X)
+        #X = np.squeeze(X)
+        Y = np.array(Y)
+
+        # train the model on the new data and update the target q net
+        history = self.q_net.fit(x = X,y = Y, verbose=0,batch_size = 16) 
+        with open(self.save_location + "/loss.txt", 'a') as file: 
+                file.write(str(history.history['loss'][0])+"\n")
+        self.transitions = []
+    except:
+        print('OOOPS!')
+
+
+def do_training_with_PER(self):
+    '''
+    INPUT: Transitions
+
+    Takes the transitions and calculates q values for the respective
+    states. Trains the model to correctly predict an actions q value
+    '''
+    X = []
+    Y = []
+    diff = []
+    diff.append(-1) #add one difference to make up for ignoring the first state
+    for transition in self.transitions[1:-1]: # ingore first move
+        old_state, action, reward, new_state = transition
+
+        current_q = self.q_net(np.expand_dims(old_state,axis=0))
+        next_q = self.target_q_net(np.expand_dims(new_state,axis=0))
+        diff.append(np.linalg.norm(current_q-next_q))
+        # correct the prediction for highest rewards
+       
+        #self.logger.debug(str(action) + ACTIONS[action])
+        #self.logger.debug('current'+str(np.array(current_q)))
+        #self.logger.debug('target  '+ str(target_q))
+    try:
+        indices = np.argpartition(diff,-10)[-10:]
+        print(indices)
+        print(len(self.transitions))
+        for transition in self.transitions[indices]: # ingore first move
+            old_state, action, reward, new_state = transition
+            current_q = self.q_net(np.expand_dims(old_state,axis=0))
+            target_q = np.copy(current_q)[0]
+            next_q = self.target_q_net(np.expand_dims(new_state,axis=0))
+
+            target_q[action] = reward + 0.95 * np.amax(next_q)
+    
+            X.append(old_state)
+            Y.append(target_q)
+
+        X = np.array(X)
+        #X = np.squeeze(X)
+        Y = np.array(Y)
+        # train the model on the new data and update the target q net
+        history = self.q_net.fit(x = X,y = Y, verbose=0,batch_size = 16) 
+        with open(self.save_location + "/loss.txt", 'a') as file: 
+                file.write(str(history.history['loss'][0])+"\n")
+        self.transitions = []
+    except:
+        pass
 
 def reward_from_events(self, events):
     """
