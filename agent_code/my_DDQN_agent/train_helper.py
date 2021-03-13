@@ -18,12 +18,12 @@ def do_training(self):
     for transition in self.transitions[1:-1]: # ingore first move
         old_state, action, reward, new_state = transition
 
-        current_q = self.q_net(np.expand_dims(old_state,axis=0))
-        target_q = np.copy(current_q)[0]
+        current_q = self.q_net.predict(np.expand_dims(old_state,axis=0))
+        target_q = np.copy(current_q)[0][0]
         next_q = self.target_q_net(np.expand_dims(new_state,axis=0))
     
         # correct the prediction for highest rewards
-        target_q[action] = target_q[action] + 0.2 (reward + 0.3* np.amax(next_q)-target_q[action])
+        target_q[action] = reward + self.gamma* np.amax(next_q)
         #target_q[action] = reward + 0.95 * np.amax(next_q)
        
         self.logger.debug(str(action) + ACTIONS[action])
@@ -31,15 +31,6 @@ def do_training(self):
         self.logger.debug('target  '+ str(target_q))
         X.append(old_state)
         Y.append(target_q)
-        
-    old_state, action, reward, new_state = self.transitions[-1] # NOT ignore last move
-    
-    current_q = self.q_net(np.expand_dims(old_state,axis=0))
-    target_q = np.copy(current_q)[0]
-    target_q[action] = reward
-    
-    X.append(old_state)
-    Y.append(target_q)
 
     
     X = np.array(X)

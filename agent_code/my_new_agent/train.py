@@ -21,7 +21,7 @@ def setup_training(self):
     :param self: This object is passed to all callbacks and you can set arbitrary values.
     """
     self.transitions = []
-    self.save_location = './saved_models/Dense_2000_epochs_more_random'
+    self.save_location = './saved_models/DENSE_AT_NIGHT'
     
     
     
@@ -71,7 +71,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events):
 
     # train the model and update the target q net
     do_training(self)
-    if last_game_state['round']%50 == 0:
+    if last_game_state['round']%5 == 0:
         self.target_q_net.set_weights(self.q_net.get_weights())
         self.q_net.save(self.save_location)
 

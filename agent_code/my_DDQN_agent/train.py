@@ -3,7 +3,7 @@ import random
 from typing import List
 import os
 import events as e
-from .callbacks import state_to_map
+from .callbacks_helper import state_to_vector
 from .train_helper import do_training, reward_from_events, do_training_with_PER_2
 
 ACTIONS = ['UP', 'RIGHT', 'DOWN', 'LEFT', 'WAIT', 'BOMB']
@@ -41,10 +41,10 @@ def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_
         reward = 0
         action = None
     else:
-        old_game_state = state_to_map(old_game_state)
+        old_game_state = state_to_vector(old_game_state)
         reward = reward_from_events(self,events)
         action = ACTIONS.index(self_action)
-        new_game_state = state_to_map(new_game_state)
+        new_game_state = state_to_vector(new_game_state)
         self.transitions.append([old_game_state,action,reward,new_game_state])
  
 def end_of_round(self, last_game_state: dict, last_action: str, events):
@@ -62,13 +62,13 @@ def end_of_round(self, last_game_state: dict, last_action: str, events):
     self.logger.debug(f'Encountered event(s) {", ".join(map(repr, events))} in final step')
     
     #store the last state
-    last_state_vector = state_to_map(last_game_state)
+    last_state_vector = state_to_vector(last_game_state)
     reward = reward_from_events(self,events)
     action = ACTIONS.index(last_action)
     self.transitions.append([last_state_vector,action,reward,None])
 
     # train the model and update the target q net
-    do_training_with_PER_2(self)
+    do_training(self)
     if last_game_state['round']%5 == 0:
         self.target_q_net.set_weights(self.q_net.get_weights())
         self.q_net.save(self.save_location)

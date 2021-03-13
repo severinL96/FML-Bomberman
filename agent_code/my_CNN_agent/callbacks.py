@@ -44,12 +44,13 @@ def act(self, game_state: dict) -> str:
     :return: The action to take as a string.
     """
     # todo Exploration vs exploitation
-    random_prob = 0.8
+    random_prob = max(0.1 , 1- game_state['round']/3000)
     if self.train and random.random() <= random_prob:
         #self.logger.debug("Choosing action purely at random.")
         return np.random.choice(ACTIONS, p=[.22, .22, .22, .22, .06, .06])
 
     state_map = state_to_map(game_state)
+    print(state_map)
     state_map = np.expand_dims(state_map,axis=0)
     action_q = self.q_net(state_map).numpy()[0]    
 
