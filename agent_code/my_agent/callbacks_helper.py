@@ -24,10 +24,11 @@ def build_difficult_q_network(learning_rate=0.00001):
     """
     model_input = Input(shape=(289,),name='input')
 
-    x = Dense(128, activation='relu',name='layer0')(model_input)
-    x = Dense(64, activation='relu',name='layer1')(x)
-    x = Dense(32, activation='relu',name='layer2')(x)
-    x = Dense(16, activation='relu',name='layer3')(x)
+    x = Dense(256, activation='relu',name='layer0')(model_input)
+    x = Dense(128, activation='relu',name='layer1')(x)
+    x = Dense(64, activation='relu',name='layer3')(x)
+    x = Dense(32, activation='relu',name='layer4')(x)
+    x = Dense(16, activation='relu',name='layer5')(x)
     
     q_vals = Dense(6,activation='linear')(x)  #activation ='softmax')(x)
 
@@ -39,12 +40,10 @@ def build_difficult_q_network(learning_rate=0.00001):
 
 
 def customLossFunction(true, pred):
-
-    
     diff = tf.math.subtract(true, pred)
     ABS = tf.math.abs(diff)
     MAX = tf.math.reduce_max(ABS)
-
+    print(MAX)
     return MAX
 
     
