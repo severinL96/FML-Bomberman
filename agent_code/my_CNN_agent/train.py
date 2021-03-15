@@ -68,7 +68,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events):
     self.transitions.append([last_state_vector,action,reward,None])
 
     # train the model and update the target q net
-    do_training_with_PER_2(self)
+    do_training(self)
     if last_game_state['round']%5 == 0:
         self.target_q_net.set_weights(self.q_net.get_weights())
         self.q_net.save(self.save_location)

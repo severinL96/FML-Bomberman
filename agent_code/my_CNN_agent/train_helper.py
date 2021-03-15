@@ -23,12 +23,13 @@ def do_training(self):
         next_q = self.target_q_net(np.expand_dims(new_state,axis=0))
     
         # correct the prediction for highest rewards
-        target_q[action] = target_q[action] + 0.6 (reward + 0.3* np.amax(next_q)-target_q[action])
-        #target_q[action] = reward + 0.95 * np.amax(next_q)
+        target_q[action] = reward + 0 * np.amax(next_q)
        
-        self.logger.debug(str(action) + ACTIONS[action])
+        self.logger.debug('action: '+str(action) +' ('+ ACTIONS[action]+') got reward: '+str(reward))
+    
         self.logger.debug('current'+str(np.array(current_q)))
         self.logger.debug('target  '+ str(target_q))
+
         X.append(old_state)
         Y.append(target_q)
         
@@ -91,7 +92,8 @@ def do_training_with_PER_2(self):
         target_q[action] = reward + 0.9 * np.amax(next_q)
         
         diff.append(np.linalg.norm(current_q - target_q))
-        self.logger.debug(str(action) + ACTIONS[action])
+        self.logger.debug('action:'+str(action) +' ('+ ACTIONS[action]+')')
+        self.logger.debug('reward'+str(reward))
         self.logger.debug('current'+str(np.array(current_q)))
         self.logger.debug('target  '+ str(target_q))
 
@@ -117,7 +119,7 @@ def reward_from_events(self, events):
     Here you can modify the rewards your agent get so as to en/discourage
     certain behavior.
     """
-    move_penalty = 0.001
+    move_penalty = -0.1
     game_rewards = {
         #Positive rewards
         e.COIN_FOUND: 0.1, # encourages exploration
@@ -131,10 +133,11 @@ def reward_from_events(self, events):
         e.MOVED_LEFT: move_penalty,
         e.MOVED_RIGHT: move_penalty,
         e.MOVED_UP: move_penalty,
-        e.WAITED: 0,
+        e.BOMB_DROPPED: move_penalty,
+        e.WAITED: -0.2,
         
         #Stupid penaltys
-        e.INVALID_ACTION: 0.2, # encourages to not be stupid
+        e.INVALID_ACTION: -0.2, # encourages to not be stupid
         e.GOT_KILLED: 0,
         e.KILLED_SELF: -.5
     }
@@ -143,6 +146,6 @@ def reward_from_events(self, events):
     for event in events:
         if event in game_rewards:
             reward_sum += game_rewards[event]
-    #self.logger.info(f"Awarded {reward_sum} for events {', '.join(events)}")
+    self.logger.info(f"Awarded {reward_sum} for events {', '.join(events)}")
     return reward_sum
 

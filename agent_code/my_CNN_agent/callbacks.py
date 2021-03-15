@@ -21,8 +21,9 @@ def setup(self):
 
     :param self: This object is passed to all callbacks and you can set arbitrary values.
     """
-    self.load_model = None #'./saved_models/CNN_first_try'
-    self.learning_rate = 10e-5
+    #self.load_model = './saved_models/CNN_first_try'
+    self.load_model = None
+    self.learning_rate = 10e-4
     if self.load_model is not None:
         pass
         self.logger.info("loading model "+self.load_model)
@@ -44,7 +45,7 @@ def act(self, game_state: dict) -> str:
     :return: The action to take as a string.
     """
     # todo Exploration vs exploitation
-    random_prob = 1#max(0.1 , 1- game_state['round']/3000)
+    random_prob = 0.3#max(0.1 , 1- game_state['round']/3000)
     if self.train and random.random() <= random_prob:
         #self.logger.debug("Choosing action purely at random.")
     
