@@ -52,6 +52,7 @@ def act(self, game_state: dict) -> str:
         return np.random.choice(ACTIONS, p=[.22, .22, .22, .22, .06, .06])
 
     state_map = state_to_map(game_state)
+    state_map = np.expand_dims(state_map,axis=-1)
     state_map = np.expand_dims(state_map,axis=0)
     action_q = self.q_net(state_map).numpy()[0]    
 

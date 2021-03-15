@@ -31,11 +31,9 @@ def setup(self):
         self.target_q_net = models.load_model(self.load_model)
     else:
         self.logger.info("creating new model.")
-        self.q_net = DDQN()
-        self.target_q_net = DDQN()
-        self.q_net.compile(loss='Huber', optimizer=opt)
-        self.target_net.compile(loss='Huber', optimizer=opt)
-
+        self.q_net = build_q_network(learning_rate=10-5)
+        self.target_q_net = self.q_net
+        
 def act(self, game_state: dict) -> str:
     """
     Your agent should parse the input, think, and take a decision.
@@ -47,7 +45,7 @@ def act(self, game_state: dict) -> str:
     """
     # todo Exploration vs exploitation
     if self.random_prob:
-        random_prob = 1- (game_state['round']/4000)
+        random_prob = 0.3
 
     if self.train and random.random() <= random_prob:
         #self.logger.debug("Choosing action purely at random.")

@@ -21,7 +21,6 @@ def setup_training(self):
     :param self: This object is passed to all callbacks and you can set arbitrary values.
     """
     self.transitions = []
-    self.save_location = './saved_models/CNN_first_try'
     
     if not os.path.isdir(self.save_location):
         os.mkdir(self.save_location)

@@ -26,7 +26,6 @@ def do_training(self):
         target_q[action] = reward + 0 * np.amax(next_q)
        
         self.logger.debug('action: '+str(action) +' ('+ ACTIONS[action]+') got reward: '+str(reward))
-    
         self.logger.debug('current'+str(np.array(current_q)))
         self.logger.debug('target  '+ str(target_q))
 
@@ -48,7 +47,7 @@ def do_training(self):
     Y = np.array(Y)
 
     # train the model on the new data and update the target q net
-    history = self.q_net.fit(x = X,y = Y, verbose=0,batch_size = 16) 
+    history = self.q_net.fit(x = X,y = Y, verbose=0,epochs = 10) 
     with open(self.save_location + "/loss.txt", 'a') as file: 
             file.write(str(history.history['loss'][0])+"\n")
     self.transitions = []
@@ -73,7 +72,7 @@ def do_training_with_PER_2(self):
 
     
         # correct the prediction for highest rewards
-        target_q[action] = reward + 0.95 * np.amax(next_q)
+        target_q[action] = reward + 0.0 * np.amax(next_q)
         
         diff.append(np.linalg.norm(current_q - target_q))
        
@@ -89,14 +88,13 @@ def do_training_with_PER_2(self):
 
     
         # correct the prediction for highest rewards
-        target_q[action] = reward + 0.9 * np.amax(next_q)
+        target_q[action] = reward + 0 * np.amax(next_q)
         
         diff.append(np.linalg.norm(current_q - target_q))
-        self.logger.debug('action:'+str(action) +' ('+ ACTIONS[action]+')')
-        self.logger.debug('reward'+str(reward))
+        self.logger.debug('action: '+str(action) +' ('+ ACTIONS[action]+') got reward: '+str(reward))
         self.logger.debug('current'+str(np.array(current_q)))
         self.logger.debug('target  '+ str(target_q))
-
+  
         X.append(old_state)
         Y.append(target_q)
     X = np.array(X)
