@@ -123,10 +123,10 @@ def reward_from_events(self, events):
     game_rewards = {
         #Positive rewards
         e.COIN_FOUND: 0.1, # encourages exploration
-        e.COIN_COLLECTED: 1, 
+        e.COIN_COLLECTED: 5, 
         e.CRATE_DESTROYED: 0.1,
         e.KILLED_OPPONENT: 0.1,
-        e.SURVIVED_ROUND: 0.3, # encourages survival
+        e.SURVIVED_ROUND: 0.0, # encourages survival
 
         #Move penaltys
         e.MOVED_DOWN: move_penalty, # encourages efficent movement
@@ -134,12 +134,12 @@ def reward_from_events(self, events):
         e.MOVED_RIGHT: move_penalty,
         e.MOVED_UP: move_penalty,
         e.BOMB_DROPPED: move_penalty,
-        e.WAITED: -0.2,
+        e.WAITED: -5, # waiting is as bad as doing something stupid
         
         #Stupid penaltys
-        e.INVALID_ACTION: -0.2, # encourages to not be stupid
+        e.INVALID_ACTION: -5, # encourages to not be stupid [STRONG]
         e.GOT_KILLED: 0,
-        e.KILLED_SELF: -.5
+        e.KILLED_SELF: -5
     }
 
     reward_sum = 0

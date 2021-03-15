@@ -7,7 +7,7 @@ import numpy as np
 
 
 
-def build_q_network(learning_rate=0.001):
+def build_q_network(learning_rate):
     """
     Builds a deep neural net which predicts the Q values for all possible
     actions given a state. The input should have the shape of the state
