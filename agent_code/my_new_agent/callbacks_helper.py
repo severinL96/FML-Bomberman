@@ -4,28 +4,27 @@ from tensorflow.keras.layers import Dense
 from tensorflow.keras.optimizers import Adam
 import numpy as np
 
+def build_q_network(learning_rate):
+  """
+  Builds a deep neural net which predicts the Q values for all possible
+  actions given a state. The input should have the shape of the state
+  (which is 4 in CartPole), and the output should have the same shape as
+  the action space (which is 2 in CartPole) since we want 1 Q value per
+  possible action.
+  
+  :return: the Q network
+  """
+  q_net = models.Sequential()
+
+  q_net.add(Dense(64, activation='sigmoid', kernel_initializer='he_uniform',input_shape=(289,)))
+  q_net.add(Dense(32, activation='sigmoid', kernel_initializer='he_uniform'))
+  q_net.add(Dense(6, activation='linear', kernel_initializer='he_uniform'))
+    
+    
+  q_net.compile(optimizer=Adam(learning_rate=learning_rate), loss=tf.keras.losses.Huber())
+  return q_net
 
 
-def build_q_network(learning_rate=0.001):
-    """
-    Builds a deep neural net which predicts the Q values for all possible
-    actions given a state. The input should have the shape of the state
-    (which is 4 in CartPole), and the output should have the same shape as
-    the action space (which is 2 in CartPole) since we want 1 Q value per
-    possible action.
-    
-    :return: the Q network
-    """
-    q_net = models.Sequential()
-    q_net.add(Dense(256, input_dim=289, activation='sigmoid', kernel_initializer='he_uniform'))
-    q_net.add(Dense(128, activation='sigmoid', kernel_initializer='he_uniform'))
-    q_net.add(Dense(64, activation='sigmoid', kernel_initializer='he_uniform'))
-    q_net.add(Dense(32, activation='sigmoid', kernel_initializer='he_uniform'))
-    q_net.add(Dense(6, activation='linear', kernel_initializer='he_uniform'))
-    
-    
-    q_net.compile(optimizer=Adam(learning_rate=learning_rate), loss=tf.keras.losses.Huber())
-    return q_net
 
 def state_to_vector(game_state):
     '''

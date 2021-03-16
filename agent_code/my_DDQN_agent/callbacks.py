@@ -3,8 +3,33 @@ import random
 import numpy as np
 from tensorflow.keras import models
 from .callbacks_helper import *
+from tensorflow.keras import optimizers
 
 ACTIONS = ['UP', 'RIGHT', 'DOWN', 'LEFT', 'WAIT', 'BOMB']
+
+
+
+class DDDQN(tf.keras.Model):
+    def __init__(self):
+      super(DDDQN, self).__init__()
+      self.d1 = tf.keras.layers.Dense(128, activation='relu')
+      self.d2 = tf.keras.layers.Dense(128, activation='relu')
+      self.v = tf.keras.layers.Dense(1, activation=None)
+      self.a = tf.keras.layers.Dense(6, activation=None)
+
+    def call(self, input_data):
+      x = self.d1(input_data)
+      x = self.d2(x)
+      v = self.v(x)
+      a = self.a(x)
+      Q = v +(a -tf.math.reduce_mean(a, axis=1, keepdims=True))
+      return Q
+
+    def advantage(self, state):
+      x = self.d1(state)
+      x = self.d2(x)
+      a = self.a(x)
+      return a
 
 
 def setup(self):
@@ -21,9 +46,8 @@ def setup(self):
 
     :param self: This object is passed to all callbacks and you can set arbitrary values.
     """
-    self.random_prob = True
-    self.load_model = None #'random_train'
-
+    self.load_model = None #'./saved_models/CNN_first_try'
+    self.gamma = 0.9
     if self.load_model is not None:
         pass
         self.logger.info("loading model "+self.load_model)
@@ -31,9 +55,12 @@ def setup(self):
         self.target_q_net = models.load_model(self.load_model)
     else:
         self.logger.info("creating new model.")
-        self.q_net = build_q_network(learning_rate=10-5)
-        self.target_q_net = self.q_net
-        
+        self.q_net = DDDQN()
+        self.target_q_net = DDDQN()
+        self.q_net.compile(loss='mse', optimizer=optimizers.Adam(learning_rate=10e-6))
+        self.target_q_net.compile(loss='mse', optimizer=optimizers.Adam(learning_rate=10e-6))
+
+
 def act(self, game_state: dict) -> str:
     """
     Your agent should parse the input, think, and take a decision.
@@ -44,17 +71,15 @@ def act(self, game_state: dict) -> str:
     :return: The action to take as a string.
     """
     # todo Exploration vs exploitation
-    if self.random_prob:
-        random_prob = 0.3
-
+    random_prob = max(0.1 , 1- game_state['round']/3000)
     if self.train and random.random() <= random_prob:
         #self.logger.debug("Choosing action purely at random.")
         return np.random.choice(ACTIONS, p=[.22, .22, .22, .22, .06, .06])
 
-
     state_vector = state_to_vector(game_state)
-    action_q = self.q_net(state_vector).numpy()[0]    
-    #self.(ACTIONS[np.argmax(action_q)],np.argmax(action_q))
+    state_vector = np.expand_dims(state_vector,axis=0)
+    action_q = self.q_net.advantage(state_vector).numpy()[0]    
+
     return ACTIONS[np.argmax(action_q)]
 
 

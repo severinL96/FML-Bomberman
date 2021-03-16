@@ -6,36 +6,30 @@ import numpy as np
 
 
 
+class DDDQN(tf.keras.Model):
+    def __init__(self):
+      super(DDDQN, self).__init__()
 
+      self.d1 = tf.keras.layers.Dense(128, activation='relu')
+      self.d2 = tf.keras.layers.Dense(128, activation='relu')
+      self.v = tf.keras.layers.Dense(1, activation=None)
+      self.a = tf.keras.layers.Dense(env.action_space.n, activation=None)
 
-def build_q_network(learning_rate): 
-    """
-    Builds a deep neural net which predicts the Q values for all possible
-    actions given a state. The input should have the shape of the state
-    (which is 4 in CartPole), and the output should have the same shape as
-    the action space (which is 2 in CartPole) since we want 1 Q value per
-    possible action.
-    
-    :return: the Q network
-    """
-    q_net = models.Sequential()
+    def call(self, input_data):
+      x = self.d1(input_data)
+      x = self.d2(x)
+      v = self.v(x)
+      a = self.a(x)
+      Q = v +(a -tf.math.reduce_mean(a, axis=1, keepdims=True))
+      return Q
 
-    q_net.add(Conv2D(16, (5, 5), activation='sigmoid', input_shape=(17,17,1)))
-    q_net.add(MaxPooling2D((2, 2)))
-    q_net.add(Conv2D(32, (3, 3), activation='sigmoid'))
-    q_net.add(Flatten())
-    q_net.add(Dense(128, activation='sigmoid', kernel_initializer='he_uniform'))
-    q_net.add(Dense(64, activation='sigmoid', kernel_initializer='he_uniform'))
-    q_net.add(Dense(32, activation='sigmoid', kernel_initializer='he_uniform'))
-    q_net.add(Dense(6, activation='linear', kernel_initializer='he_uniform'))
-    
-    
-    q_net.compile(optimizer=Adam(learning_rate=learning_rate), loss=tf.keras.losses.Huber())
-    return q_net
+    def advantage(self, state):
+      x = self.d1(state)
+      x = self.d2(x)
+      a = self.a(x)
+      return a
 
-
-
-def state_to_map(game_state):
+def state_to_vector(game_state):
     '''
     INPUT: game_state dict, size of field, vector = True
             game_state: {field: array(w,h),
@@ -58,8 +52,10 @@ def state_to_map(game_state):
     state_map[coord]= 1
     for name,score,bomb,coord in game_state['others']:
         state_map[coord]= .8
+
     for coin in game_state['coins']:
-        state_map[coin] = .6
+        state_map[coin] = 0.6
+
     field = game_state['field']
     field = np.where(field == -1, .4, field) #revalue wall
     field = np.where(field == 1, .2, field) #revalue crate
@@ -70,5 +66,9 @@ def state_to_map(game_state):
 
     for coord, timer in game_state['bombs']:
         state_map[coord] = -(timer/10 + .6)
-    state_map = np.expand_dims(state_map,axis=-1)
-    return state_map
+
+    #join all maps
+    state_vector = state_map.reshape(-1)
+
+    state_vector = tf.convert_to_tensor(state_vector[None, :], dtype=tf.float32)
+    return state_vector

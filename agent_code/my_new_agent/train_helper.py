@@ -45,6 +45,7 @@ def do_training(self):
     Y = np.array(Y)
 
     # train the model on the new data and update the target q net
+    print(X)
     history = self.q_net.fit(x = X,y = Y, verbose=0) 
     with open(self.save_location + "/loss.txt", 'a') as file: 
             file.write(str(history.history['loss'][0])+"\n")

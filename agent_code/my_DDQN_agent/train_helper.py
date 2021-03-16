@@ -18,28 +18,19 @@ def do_training(self):
     for transition in self.transitions[1:-1]: # ingore first move
         old_state, action, reward, new_state = transition
 
-        current_q = self.q_net(np.expand_dims(old_state,axis=0))
-        target_q = np.copy(current_q)[0]
+        current_q = self.q_net.predict(np.expand_dims(old_state,axis=0))
+        target_q = np.copy(current_q)[0][0]
         next_q = self.target_q_net(np.expand_dims(new_state,axis=0))
     
         # correct the prediction for highest rewards
-        target_q[action] = reward + 0 * np.amax(next_q)
+        target_q[action] = reward + self.gamma* np.amax(next_q)
+        #target_q[action] = reward + 0.95 * np.amax(next_q)
        
-        self.logger.debug('action: '+str(action) +' ('+ ACTIONS[action]+') got reward: '+str(reward))
+        self.logger.debug(str(action) + ACTIONS[action])
         self.logger.debug('current'+str(np.array(current_q)))
         self.logger.debug('target  '+ str(target_q))
-
         X.append(old_state)
         Y.append(target_q)
-        
-    old_state, action, reward, new_state = self.transitions[-1] # NOT ignore last move
-    
-    current_q = self.q_net(np.expand_dims(old_state,axis=0))
-    target_q = np.copy(current_q)[0]
-    target_q[action] = reward
-    
-    X.append(old_state)
-    Y.append(target_q)
 
     
     X = np.array(X)
@@ -47,7 +38,7 @@ def do_training(self):
     Y = np.array(Y)
 
     # train the model on the new data and update the target q net
-    history = self.q_net.fit(x = X,y = Y, verbose=0,epochs = 10) 
+    history = self.q_net.fit(x = X,y = Y, verbose=0,batch_size = 16) 
     with open(self.save_location + "/loss.txt", 'a') as file: 
             file.write(str(history.history['loss'][0])+"\n")
     self.transitions = []
@@ -72,7 +63,7 @@ def do_training_with_PER_2(self):
 
     
         # correct the prediction for highest rewards
-        target_q[action] = reward + 0.0 * np.amax(next_q)
+        target_q[action] = reward + 0.95 * np.amax(next_q)
         
         diff.append(np.linalg.norm(current_q - target_q))
        
@@ -88,13 +79,13 @@ def do_training_with_PER_2(self):
 
     
         # correct the prediction for highest rewards
-        target_q[action] = reward + 0 * np.amax(next_q)
+        target_q[action] = reward + 0.9 * np.amax(next_q)
         
         diff.append(np.linalg.norm(current_q - target_q))
-        self.logger.debug('action: '+str(action) +' ('+ ACTIONS[action]+') got reward: '+str(reward))
+        self.logger.debug(str(action) + ACTIONS[action])
         self.logger.debug('current'+str(np.array(current_q)))
         self.logger.debug('target  '+ str(target_q))
-  
+
         X.append(old_state)
         Y.append(target_q)
     X = np.array(X)
@@ -117,33 +108,32 @@ def reward_from_events(self, events):
     Here you can modify the rewards your agent get so as to en/discourage
     certain behavior.
     """
-    move_penalty = -0.1
+    move_penalty = 0.001
     game_rewards = {
         #Positive rewards
         e.COIN_FOUND: 0.1, # encourages exploration
-        e.COIN_COLLECTED: 5, 
+        e.COIN_COLLECTED: 1, 
         e.CRATE_DESTROYED: 0.1,
         e.KILLED_OPPONENT: 0.1,
-        e.SURVIVED_ROUND: 0.0, # encourages survival
+        e.SURVIVED_ROUND: 0.3, # encourages survival
 
         #Move penaltys
         e.MOVED_DOWN: move_penalty, # encourages efficent movement
         e.MOVED_LEFT: move_penalty,
         e.MOVED_RIGHT: move_penalty,
         e.MOVED_UP: move_penalty,
-        e.BOMB_DROPPED: move_penalty,
-        e.WAITED: -5, # waiting is as bad as doing something stupid
+        e.WAITED: 0,
         
         #Stupid penaltys
-        e.INVALID_ACTION: -5, # encourages to not be stupid [STRONG]
-        e.GOT_KILLED: 0,
-        e.KILLED_SELF: -5
+        e.INVALID_ACTION: -0.1, # encourages to not be stupid
+        e.GOT_KILLED: -.5,
+        e.KILLED_SELF: -.5
     }
 
     reward_sum = 0
     for event in events:
         if event in game_rewards:
             reward_sum += game_rewards[event]
-    self.logger.info(f"Awarded {reward_sum} for events {', '.join(events)}")
+    #self.logger.info(f"Awarded {reward_sum} for events {', '.join(events)}")
     return reward_sum
 
