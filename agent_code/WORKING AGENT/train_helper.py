@@ -6,9 +6,6 @@ from tensorflow.keras import models
 from tensorflow.keras.layers import Dense, Conv2D, MaxPooling2D, Flatten
 from tensorflow.keras.optimizers import Adam
 import numpy as np
-from keras.callbacks import LearningRateScheduler
-
-
 
 
 ACTIONS = ['UP', 'RIGHT', 'DOWN', 'LEFT', 'WAIT', 'BOMB']
@@ -40,8 +37,16 @@ def do_training(self):
         target_q[action] = reward + 1 * np.amax(next_q)
         #target_q = np.expand_dims(target_q, axis=0)
        
-
-
+    
+        #print(np.copy(current_q)[0])
+        #print(action)
+        #print(reward)
+        #print("")
+    
+    
+        
+    
+    
         self.logger.debug('action: '+str(action) +' ('+ ACTIONS[action]+') got reward: '+str(reward))
         self.logger.debug('current'+str(np.array(current_q)))
         self.logger.debug('target  '+ str(target_q))
@@ -53,13 +58,17 @@ def do_training(self):
     X = np.array(X)
     Y = np.array(Y)
 
-    for k in range(20):
 
+    
+    for i in range(10):
         # train the model on the new data and update the target q net
-        history = self.q_net.fit(X,Y,epochs = 10, verbose = 0, shuffle =True) 
+        history = self.q_net.fit(X,Y,epochs = 5, verbose = 0, shuffle =True, callbacks=[0.0001]) 
         with open(self.save_location + "/loss.txt", 'a') as file: 
-            for i in range(len(history.history["loss"])):
-                file.write(str(history.history['loss'][i])+"\n")
+            file.write(str(history.history['loss'][0])+"\n")
+            
+  #  for transition in self.transitions[1:-1]: # ingore first move
+  #      old_state, action, reward, new_state = transition
+  #      self.logger.debug(self.q_net(np.expand_dims(np.expand_dims(old_state,axis=0),axis=-1)))            
             
     self.transitions = []
 
@@ -113,9 +122,8 @@ def do_training_with_PER_2(self):
     #X = np.squeeze(X)
     Y = np.array(Y)
 
-    #callbacks = [LearningRateScheduler(lr_scheduler)]
     # train the model on the new data and update the target q net
-    history = self.q_net.fit(x = X,y = Y, verbose=0) 
+    history = self.q_net.fit(x = X,y = Y, verbose=0,batch_size = 1) 
     with open(self.save_location + "/loss.txt", 'a') as file: 
             file.write(str(history.history['loss'][0])+"\n")
     self.transitions = []
