@@ -31,7 +31,7 @@ def setup(self):
         self.target_q_net = models.load_model(self.load_model)
     else:
         self.logger.info("creating new model.")
-        self.q_net = build_q_network(learning_rate=self.learning_rate)
+        self.q_net = build_q_network(self.learning_rate)
         self.target_q_net = build_q_network(self.learning_rate)
 
 
@@ -67,7 +67,6 @@ def act(self, game_state: dict) -> str:
             NEW.append(action_q[i])
         else:
             NEW.append(-1000)
-        
         
 
     return ACTIONS[np.argmax(NEW)]

@@ -68,11 +68,11 @@ def end_of_round(self, last_game_state: dict, last_action: str, events):
     #self.transitions.append([last_state_vector,action,reward,None])
 
     
-    if last_game_state["round"] % 10 == 0:
+    if last_game_state["round"] % 4 == 0:
         # train the model and update the target q net
         do_training(self)
         
-    if last_game_state["round"] % 10 == 0:
+    if last_game_state["round"] % 4 == 0:
         # train the model and update the target q net
         self.target_q_net.set_weights(self.q_net.get_weights())
         self.q_net.save(self.save_location)
