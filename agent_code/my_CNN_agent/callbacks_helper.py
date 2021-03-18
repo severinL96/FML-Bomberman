@@ -19,9 +19,8 @@ def build_q_network(learning_rate):
     :return: the Q network
     """
     q_net = models.Sequential()
-
-    q_net.add(Conv2D(16, (5, 5), activation='sigmoid', input_shape=(17,17, 1)))
-    q_net.add(MaxPooling2D((2, 2)))
+    
+    q_net.add(Conv2D(16, (3, 3), activation='sigmoid', input_shape=(17,17, 1)))
     q_net.add(Conv2D(32, (3, 3), activation='sigmoid'))
     q_net.add(Flatten())
     q_net.add(Dense(128, activation='sigmoid', kernel_initializer='he_uniform'))

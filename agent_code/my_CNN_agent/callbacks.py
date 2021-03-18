@@ -26,8 +26,8 @@ def setup(self):
 
 
     #training
-    self.train_after_episodes = 50
-    self.learning_rate = 10e-6
+    self.train_after_episodes = 1
+    self.learning_rate = 10e-7
     self.train_epochs = 100
     self.save_location = './saved_models/CNN_first_try'
     self.psi = 1000 #randomness hyperparameter

@@ -23,11 +23,9 @@ def do_training(self):
     '''
     X = []
     Y = []
-    rewards = []    
 
     for transition in self.transitions[1:-1]: # ingore first move
         old_state, action, reward, new_state = transition
-        rewards.append(reward)
 
         current_q = self.q_net(np.expand_dims(np.expand_dims(old_state,axis=0),axis=-1))
         target_q = np.copy(current_q)[0]
@@ -50,12 +48,7 @@ def do_training(self):
     Y = np.array(Y)
    # print("  " + str(len(Y)))
 
-    with open(self.save_location + "/average_reward.txt", 'a') as file: 
-        try:
-            average_reward = np.sum(rewards)/len(self.transitions)
-            file.write(str(average_reward)+"\n")
-        except:
-            file.write(str(np.nan)+"\n")
+    
 
 
     # train the model on the new data and update the target q net
@@ -136,7 +129,7 @@ def reward_from_events(self, events):
     Here you can modify the rewards your agent get so as to en/discourage
     certain behavior.
     """
-    move_penalty = 0
+    move_penalty = -0.1
     game_rewards = {
         #Positive rewards
         #e.COIN_FOUND: 0.1, # encourages exploration
@@ -151,7 +144,7 @@ def reward_from_events(self, events):
         e.MOVED_RIGHT: move_penalty,
         e.MOVED_UP: move_penalty,
         e.BOMB_DROPPED: move_penalty,
-        e.WAITED: move_penalty, # waiting is as bad as doing something stupid
+        e.WAITED: 2*move_penalty, # waiting is as bad as doing something stupid
         
         #Stupid penaltys
         e.INVALID_ACTION: -5, # encourages to not be stupid [STRONG]
