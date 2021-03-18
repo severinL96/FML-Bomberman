@@ -36,16 +36,23 @@ def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_
     """
     self.logger.debug(f'Encountered game event(s) {", ".join(map(repr, events))} in step {new_game_state["step"]}')
     #store a static state as first move
+
+    
     if new_game_state['step']<=1:
         old_game_state = new_game_state
         reward = 0
         action = None
     else:
+
+        
         old_game_state = state_to_map(old_game_state)
         reward = reward_from_events(self,events)
         action = ACTIONS.index(self_action)
         new_game_state = state_to_map(new_game_state)
         self.transitions.append([old_game_state,action,reward,new_game_state])
+        
+        
+
  
 def end_of_round(self, last_game_state: dict, last_action: str, events):
     """
@@ -66,13 +73,14 @@ def end_of_round(self, last_game_state: dict, last_action: str, events):
     reward = reward_from_events(self,events)
     action = ACTIONS.index(last_action)
     #self.transitions.append([last_state_vector,action,reward,None])
-
     
-    if last_game_state["round"] % 4 == 0:
+    do_training(self)
+    
+    #if last_game_state["round"] % 2 == 0:
         # train the model and update the target q net
-        do_training(self)
+        #do_training(self)
         
-    if last_game_state["round"] % 4 == 0:
+    if last_game_state["round"] % 2 == 0:
         # train the model and update the target q net
         self.target_q_net.set_weights(self.q_net.get_weights())
         self.q_net.save(self.save_location)

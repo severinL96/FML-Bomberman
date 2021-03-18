@@ -19,7 +19,6 @@ ACTIONS = ['UP', 'RIGHT', 'DOWN', 'LEFT', 'WAIT', 'BOMB']
 def do_training(self):
     '''
     INPUT: Transitions
-
     Takes the transitions and calculates q values for the respective
     states. Trains the model to correctly predict an actions q value
     '''
@@ -49,14 +48,14 @@ def do_training(self):
 
         
         
-        if abs(np.linalg.norm(current_q - target_q)) >= 1:
-            X.append(old_state)
-            Y.append(target_q)
+        #if abs(np.linalg.norm(current_q - target_q)) >= 1:
+        X.append(old_state)
+        Y.append(target_q)
 
     X = np.expand_dims(X,axis=-1)
     X = np.array(X)
     Y = np.array(Y)
-    print("  " + str(len(Y)))
+   # print("  " + str(len(Y)))
 
 
 
@@ -71,7 +70,6 @@ def do_training(self):
 def do_training_with_PER_2(self):
     '''
     INPUT: Transitions
-
     Takes the transitions and calculates q values for the respective
     states. Trains the model to correctly predict an actions q value
     '''
@@ -136,7 +134,6 @@ def do_training_with_PER_2(self):
 def reward_from_events(self, events):
     """
     *This is not a required function, but an idea to structure your code.*
-
     Here you can modify the rewards your agent get so as to en/discourage
     certain behavior.
     """
@@ -147,7 +144,7 @@ def reward_from_events(self, events):
         e.COIN_COLLECTED: 5, 
         #e.CRATE_DESTROYED: 0.1,
         #e.KILLED_OPPONENT: 0.1,
-        #e.SURVIVED_ROUND: 0.0, # encourages survival
+        #e.SURVIVED_ROUND: 0.0, # encourages survival
 
         #Move penaltys
         e.MOVED_DOWN: move_penalty, # encourages efficent movement
@@ -169,4 +166,3 @@ def reward_from_events(self, events):
             reward_sum += game_rewards[event]
     self.logger.info(f"Awarded {reward_sum} for events {', '.join(events)}")
     return reward_sum
-

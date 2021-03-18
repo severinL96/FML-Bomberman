@@ -53,7 +53,7 @@ def act(self, game_state: dict) -> str:
         #self.logger.debug("Choosing action purely at random.")
     
 
-        return np.random.choice(ACTIONS, p=[.25, .25, .25, .25, 0,0])
+        return np.random.choice(ACTIONS, p=[.20, .20, .20, .20, 0.1,0.1])
 
     state_map = state_to_map(game_state)
     state_map = np.expand_dims(state_map,axis=-1)
