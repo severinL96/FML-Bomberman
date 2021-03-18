@@ -28,6 +28,9 @@ def setup_training(self):
     with open(self.save_location+"/loss.txt", 'w') as file: 
         file.truncate(0)
         file.close()
+with open(self.save_location+"/avg_reward.txt", 'w') as file: 
+        file.truncate(0)
+        file.close()
 
 
 def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_state: dict, events):
@@ -74,6 +77,10 @@ def end_of_round(self, last_game_state: dict, last_action: str, events):
     action = ACTIONS.index(last_action)
     #self.transitions.append([last_state_vector,action,reward,None])
     
+    with open(self.save_location + "/loss.txt", 'a') as file: 
+        for i in range(len(history.history["loss"])):
+            file.write(str(history.history['loss'][i])+"\n")
+    
     do_training(self)
     
     #if last_game_state["round"] % 2 == 0:
@@ -84,5 +91,6 @@ def end_of_round(self, last_game_state: dict, last_action: str, events):
         # train the model and update the target q net
         self.target_q_net.set_weights(self.q_net.get_weights())
         self.q_net.save(self.save_location)
+
 
 

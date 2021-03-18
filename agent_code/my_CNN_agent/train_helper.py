@@ -24,11 +24,11 @@ def do_training(self):
     '''
     X = []
     Y = []
-    
+    rewards = []    
 
     for transition in self.transitions[1:-1]: # ingore first move
         old_state, action, reward, new_state = transition
-
+        reward.append(reward)
 
         
         current_q = self.q_net(np.expand_dims(np.expand_dims(old_state,axis=0),axis=-1))
@@ -57,6 +57,11 @@ def do_training(self):
     Y = np.array(Y)
    # print("  " + str(len(Y)))
 
+    with open(self.save_location + "/average_reward.txt", 'a') as file: 
+        try:
+            file.write(str(average_reward/len(self.transitions))+"\n")
+        except:
+            file.write((str))+"\n")
 
 
     # train the model on the new data and update the target q net
