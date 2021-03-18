@@ -23,7 +23,17 @@ def setup(self):
     """
     #self.load_model = './saved_models/CNN_first_try'
     self.load_model = None
-    self.learning_rate = 0.0001
+
+
+    #training
+    self.train_after_episodes = 50
+    self.learning_rate = 10e-6
+    self.train_epochs = 100
+    self.save_location = './saved_models/CNN_first_try'
+    self.psi = 1000 #randomness hyperparameter
+    
+    self.verbose = 0 # display training progress
+
     if self.load_model is not None:
         pass
         self.logger.info("loading model "+self.load_model)
@@ -45,31 +55,20 @@ def act(self, game_state: dict) -> str:
     :return: The action to take as a string.
     """
     
+    
+    #  Exploration vs exploitation
+    random_prob = max(0.1 , 1- game_state['round']/self.psi)
 
-
-    # todo Exploration vs exploitation
-    random_prob = 1.0 #max(0.1 , 1- game_state['round']/3000)
     if self.train and random.random() <= random_prob:
         #self.logger.debug("Choosing action purely at random.")
-    
-
         return np.random.choice(ACTIONS, p=[.20, .20, .20, .20, 0.1,0.1])
-
-    state_map = state_to_map(game_state)
-    state_map = np.expand_dims(state_map,axis=-1)
-    state_map = np.expand_dims(state_map,axis=0)
-    action_q = self.q_net(state_map).numpy()[0]    
-
+    else:
+        state_map = state_to_map(game_state)
+        state_map = np.expand_dims(state_map,axis=-1)
+        state_map = np.expand_dims(state_map,axis=0)
+        action_q = self.q_net(state_map).numpy()[0]    
     
-    NEW=[]
-    for i in range(0, len(action_q)):
-        if i != 4 and i !=5:
-            NEW.append(action_q[i])
-        else:
-            NEW.append(-1000)
-        
-
-    return ACTIONS[np.argmax(NEW)]
+        return ACTIONS[np.argmax(action_q)]
 
 
 

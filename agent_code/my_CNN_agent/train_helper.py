@@ -6,7 +6,6 @@ from tensorflow.keras import models
 from tensorflow.keras.layers import Dense, Conv2D, MaxPooling2D, Flatten
 from tensorflow.keras.optimizers import Adam
 import numpy as np
-from keras.callbacks import LearningRateScheduler
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -28,26 +27,20 @@ def do_training(self):
 
     for transition in self.transitions[1:-1]: # ingore first move
         old_state, action, reward, new_state = transition
-        reward.append(reward)
+        rewards.append(reward)
 
-        
         current_q = self.q_net(np.expand_dims(np.expand_dims(old_state,axis=0),axis=-1))
         target_q = np.copy(current_q)[0]
         next_q = self.target_q_net(np.expand_dims(np.expand_dims(new_state,axis=0),axis=-1))
-    
-    
+        
         # correct the prediction for highest rewards
         target_q[action] = reward + 1 * np.amax(next_q)
         #target_q = np.expand_dims(target_q, axis=0)
-       
-
 
         self.logger.debug('action: '+str(action) +' ('+ ACTIONS[action]+') got reward: '+str(reward))
         self.logger.debug('current'+str(np.array(current_q)))
         self.logger.debug('target  '+ str(target_q))
 
-        
-        
         #if abs(np.linalg.norm(current_q - target_q)) >= 1:
         X.append(old_state)
         Y.append(target_q)
@@ -59,13 +52,14 @@ def do_training(self):
 
     with open(self.save_location + "/average_reward.txt", 'a') as file: 
         try:
-            file.write(str(average_reward/len(self.transitions))+"\n")
+            average_reward = np.sum(rewards)/len(self.transitions)
+            file.write(str(average_reward)+"\n")
         except:
-            file.write((str))+"\n")
+            file.write(str(np.nan)+"\n")
 
 
     # train the model on the new data and update the target q net
-    history = self.q_net.fit(X,Y,epochs = 500, verbose = 0, shuffle =True) 
+    history = self.q_net.fit(X,Y,epochs = self.train_epochs, verbose = self.verbose, shuffle =True) 
     with open(self.save_location + "/loss.txt", 'a') as file: 
         for i in range(len(history.history["loss"])):
             file.write(str(history.history['loss'][i])+"\n")

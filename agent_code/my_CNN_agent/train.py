@@ -4,7 +4,7 @@ from typing import List
 import os
 import events as e
 from .callbacks import state_to_map
-from .train_helper import do_training, reward_from_events, do_training_with_PER_2
+from .train_helper import do_training, reward_from_events#, do_training_with_PER_2
 
 ACTIONS = ['UP', 'RIGHT', 'DOWN', 'LEFT', 'WAIT', 'BOMB']
 
@@ -21,14 +21,13 @@ def setup_training(self):
     :param self: This object is passed to all callbacks and you can set arbitrary values.
     """
     self.transitions = []
-    self.save_location = './saved_models/CNN_first_try'
     
     if not os.path.isdir(self.save_location):
         os.mkdir(self.save_location)
     with open(self.save_location+"/loss.txt", 'w') as file: 
         file.truncate(0)
         file.close()
-with open(self.save_location+"/avg_reward.txt", 'w') as file: 
+    with open(self.save_location+"/avg_reward.txt", 'w') as file: 
         file.truncate(0)
         file.close()
 
@@ -54,7 +53,6 @@ def game_events_occurred(self, old_game_state: dict, self_action: str, new_game_
         new_game_state = state_to_map(new_game_state)
         self.transitions.append([old_game_state,action,reward,new_game_state])
         
-        
 
  
 def end_of_round(self, last_game_state: dict, last_action: str, events):
@@ -69,6 +67,7 @@ def end_of_round(self, last_game_state: dict, last_action: str, events):
 
     :param self: The same object that is passed to all of your callbacks.
     """
+    print(len(self.transitions))
     self.logger.debug(f'Encountered event(s) {", ".join(map(repr, events))} in final step')
     
     #store the last state
@@ -76,18 +75,14 @@ def end_of_round(self, last_game_state: dict, last_action: str, events):
     reward = reward_from_events(self,events)
     action = ACTIONS.index(last_action)
     #self.transitions.append([last_state_vector,action,reward,None])
-    
-    with open(self.save_location + "/loss.txt", 'a') as file: 
-        for i in range(len(history.history["loss"])):
-            file.write(str(history.history['loss'][i])+"\n")
-    
-    do_training(self)
-    
-    #if last_game_state["round"] % 2 == 0:
-        # train the model and update the target q net
-        #do_training(self)
         
-    if last_game_state["round"] % 2 == 0:
+    #do_training(self)
+    
+    if last_game_state["round"] % self.train_after_episodes == 0:
+        # train the model and update the target q net
+        do_training(self)
+        
+    if last_game_state["round"] % self.train_after_episodes == 0:
         # train the model and update the target q net
         self.target_q_net.set_weights(self.q_net.get_weights())
         self.q_net.save(self.save_location)
