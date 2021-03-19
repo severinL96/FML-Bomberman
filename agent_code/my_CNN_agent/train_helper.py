@@ -32,7 +32,7 @@ def do_training(self):
         next_q = self.target_q_net(np.expand_dims(np.expand_dims(new_state,axis=0),axis=-1))
         
         # correct the prediction for highest rewards
-        target_q[action] = reward + 1 * np.amax(next_q)
+        target_q[action] = reward + self.gamma * np.amax(next_q)
         #target_q = np.expand_dims(target_q, axis=0)
 
         self.logger.debug('action: '+str(action) +' ('+ ACTIONS[action]+') got reward: '+str(reward))
@@ -144,7 +144,7 @@ def reward_from_events(self, events):
         e.MOVED_RIGHT: move_penalty,
         e.MOVED_UP: move_penalty,
         e.BOMB_DROPPED: move_penalty,
-        e.WAITED: 2*move_penalty, # waiting is as bad as doing something stupid
+        e.WAITED: -5, # waiting is as bad as doing something stupid
         
         #Stupid penaltys
         e.INVALID_ACTION: -5, # encourages to not be stupid [STRONG]

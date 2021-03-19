@@ -26,11 +26,13 @@ def setup(self):
 
 
     #training
-    self.train_after_episodes = 1
-    self.learning_rate = 10e-7
+    self.train_after_episodes = 30
+    self.reset_target_after_episodes = 120
+    self.gamma = .9
+    self.learning_rate = 10e-6
     self.train_epochs = 100
     self.save_location = './saved_models/CNN_first_try'
-    self.psi = 1000 #randomness hyperparameter
+    self.psi = 500 #randomness hyperparameter
     
     self.verbose = 0 # display training progress
 
@@ -61,7 +63,7 @@ def act(self, game_state: dict) -> str:
 
     if self.train and random.random() <= random_prob:
         #self.logger.debug("Choosing action purely at random.")
-        return np.random.choice(ACTIONS, p=[.20, .20, .20, .20, 0.1,0.1])
+        return np.random.choice(ACTIONS, p=[.18, .18, .18, .18, .18,0.1])
     else:
         state_map = state_to_map(game_state)
         state_map = np.expand_dims(state_map,axis=-1)

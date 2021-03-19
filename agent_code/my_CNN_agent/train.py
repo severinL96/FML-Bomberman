@@ -27,7 +27,10 @@ def setup_training(self):
     with open(self.save_location+"/loss.txt", 'w') as file: 
         file.truncate(0)
         file.close()
-    with open(self.save_location+"/average_reward.txt", 'w') as file: 
+    with open(self.save_location+"/step_reward.txt", 'w') as file: 
+        file.truncate(0)
+        file.close()
+    with open(self.save_location+"/game_length.txt", 'w') as file: 
         file.truncate(0)
         file.close()
 
@@ -83,19 +86,24 @@ def end_of_round(self, last_game_state: dict, last_action: str, events):
         # train the model and update the target q net
         do_training(self)
         
-    if last_game_state["round"] % self.train_after_episodes == 0:
+    if last_game_state["round"] % self.reset_target_after_episodes == 0:
         # train the model and update the target q net
         self.target_q_net.set_weights(self.q_net.get_weights())
         self.q_net.save(self.save_location)
 
     self.rewards_in_game.append(reward)
 
-    with open(self.save_location + "/average_reward.txt", 'a') as file: 
+    with open(self.save_location + "/step_reward.txt", 'a') as file: 
         try:
             average_reward = np.sum(self.rewards_in_game)/len(self.rewards_in_game)
             file.write(str(average_reward)+"\n")
         except:
             file.write(str(np.nan)+"\n")
             self.rewards_in_game = []
+            
+    with open(self.save_location + "/game_length.txt", 'a') as file: 
+        file.write(str(len(self.rewards_in_game))+"\n")
+
+    self.rewards_in_game = []
 
 

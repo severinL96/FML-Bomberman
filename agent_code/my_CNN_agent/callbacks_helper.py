@@ -20,9 +20,11 @@ def build_q_network(learning_rate):
     """
     q_net = models.Sequential()
     
-    q_net.add(Conv2D(16, (3, 3), activation='sigmoid', input_shape=(17,17, 1)))
-    q_net.add(Conv2D(32, (3, 3), activation='sigmoid'))
+    q_net.add(Conv2D(1, (3, 3), activation='sigmoid', input_shape=(17,17, 1)))
+    #q_net.add(Conv2D(32, (3, 3), activation='sigmoid'))
     q_net.add(Flatten())
+    q_net.add(Dense(1024, activation='sigmoid', kernel_initializer='he_uniform'))
+    q_net.add(Dense(512, activation='sigmoid', kernel_initializer='he_uniform'))
     q_net.add(Dense(128, activation='sigmoid', kernel_initializer='he_uniform'))
     q_net.add(Dense(64, activation='sigmoid', kernel_initializer='he_uniform'))
     q_net.add(Dense(32, activation='sigmoid', kernel_initializer='he_uniform'))
