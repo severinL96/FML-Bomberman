@@ -31,7 +31,7 @@ def build_q_network(learning_rate):
     q_net.add(Dense(6, activation='linear', kernel_initializer='he_uniform'))
     
     
-    q_net.compile(optimizer=Adam(learning_rate=learning_rate), loss=tf.keras.losses.Huber())
+    q_net.compile(optimizer=Adam(learning_rate=learning_rate), loss="mse")
     return q_net
 
 
