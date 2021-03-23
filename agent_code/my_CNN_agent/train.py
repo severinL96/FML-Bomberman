@@ -82,10 +82,11 @@ def end_of_round(self, last_game_state: dict, last_action: str, events):
         
     #do_training(self)
     
-    if last_game_state["round"] % self.train_after_episodes == 0:
+    if last_game_state["round"] % self.train_after_episodes*4 == 0:
         # train the model and update the target q net
         do_training(self)
-        
+    elif last_game_state["round"] % self.train_after_episodes == 0:
+        do_training_with_PER_2(self)
     if last_game_state["round"] % self.reset_target_after_episodes == 0:
         # train the model and update the target q net
         self.target_q_net.set_weights(self.q_net.get_weights())
